@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
+import { libelleRole } from "@/lib/roles";
+import type { UserRole } from "@/lib/database.types";
 import {
   BanknoteIcon,
   FolderOpenIcon,
@@ -33,7 +35,7 @@ export function Navigation({
 }: {
   nomAgence: string;
   nomUtilisateur: string;
-  role: string;
+  role: UserRole;
 }) {
   const pathname = usePathname();
   const [ouvert, setOuvert] = useState(false);
@@ -74,7 +76,7 @@ export function Navigation({
       <div className="border-t border-marque-800 p-3">
         <div className="px-2 pb-2">
           <p className="truncate text-sm font-medium text-white">{nomUtilisateur}</p>
-          <p className="text-xs capitalize text-marque-300">{role}</p>
+          <p className="text-xs text-marque-300">{libelleRole(role)}</p>
         </div>
         <form action="/auth/deconnexion" method="post">
           <button

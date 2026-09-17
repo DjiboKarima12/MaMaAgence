@@ -4,16 +4,10 @@ import { useActionState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Bouton, Champ, Erreur, Saisie, Selection, Succes } from "@/components/ui";
 import { REGIONS_NIGER } from "@/lib/niger";
+import { ORDRE_ROLES, ROLES } from "@/lib/roles";
 import { basculerActivation, changerRole, modifierAgence } from "@/lib/actions/agence";
 import { ETAT_INITIAL } from "@/lib/actions/commun";
-import type { Agence, Profil, UserRole } from "@/lib/database.types";
-
-const ROLES: { valeur: UserRole; label: string; description: string }[] = [
-  { valeur: "proprietaire", label: "Propriétaire", description: "Tous les droits, gère l'équipe" },
-  { valeur: "gestionnaire", label: "Gestionnaire", description: "Dossiers, groupes, catalogue" },
-  { valeur: "comptable", label: "Comptable", description: "Encaissements et journal" },
-  { valeur: "agent", label: "Agent", description: "Saisie des pèlerins et dossiers" },
-];
+import type { Agence, Profil } from "@/lib/database.types";
 
 export function FormulaireAgence({ agence, modifiable }: { agence: Agence; modifiable: boolean }) {
   const [etat, envoyer, enCours] = useActionState(modifierAgence, ETAT_INITIAL);
@@ -107,7 +101,7 @@ export function LigneEquipe({
           {estMoi && <span className="ml-2 text-xs text-ardoise-400">(vous)</span>}
         </p>
         <p className="text-xs text-ardoise-500">
-          {ROLES.find((r) => r.valeur === profil.role)?.description}
+          {ROLES[profil.role].description}
           {!profil.actif && <span className="ml-2 text-rose-600">accès suspendu</span>}
         </p>
       </div>
@@ -125,9 +119,9 @@ export function LigneEquipe({
           }}
           className="rounded-lg border-0 bg-white px-3 py-1.5 text-sm ring-1 ring-inset ring-ardoise-300 disabled:bg-ardoise-50 disabled:text-ardoise-400"
         >
-          {ROLES.map((r) => (
-            <option key={r.valeur} value={r.valeur}>
-              {r.label}
+          {ORDRE_ROLES.map((r) => (
+            <option key={r} value={r}>
+              {ROLES[r].label}
             </option>
           ))}
         </select>

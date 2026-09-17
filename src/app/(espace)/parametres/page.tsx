@@ -3,6 +3,7 @@ import { exigerSession, peut } from "@/lib/session";
 import { creerClientServeur } from "@/lib/supabase/server";
 import { Carte, EnTetePage } from "@/components/ui";
 import { dateCourte } from "@/lib/format";
+import { libelleRole } from "@/lib/roles";
 import { FormulaireAgence, LigneEquipe } from "./formulaires";
 import type { Profil } from "@/lib/database.types";
 
@@ -54,12 +55,12 @@ export default async function PageParametres() {
               {[
                 ["Nom", session.profil.nom_complet],
                 ["E-mail", session.email],
-                ["Rôle", session.profil.role],
+                ["Rôle", libelleRole(session.profil.role)],
                 ["Membre depuis", dateCourte(session.profil.cree_le)],
               ].map(([k, v]) => (
                 <div key={k} className="px-5 py-2.5">
                   <dt className="text-xs uppercase tracking-wide text-ardoise-500">{k}</dt>
-                  <dd className="mt-0.5 capitalize text-ardoise-900">{v}</dd>
+                  <dd className="mt-0.5 text-ardoise-900">{v}</dd>
                 </div>
               ))}
             </dl>
