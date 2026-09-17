@@ -1,94 +1,154 @@
 import Link from "next/link";
 import type { Metadata } from "next";
+import {
+  ArrowRightIcon,
+  BedDoubleIcon,
+  FileTextIcon,
+  PlaneTakeoffIcon,
+  SearchIcon,
+  StampIcon,
+  TriangleAlertIcon,
+  UserPlusIcon,
+  UsersIcon,
+  WalletIcon,
+} from "lucide-react";
 import { exigerSession } from "@/lib/session";
 import { creerClientServeur } from "@/lib/supabase/server";
-import {
-  Badge,
-  Carte,
-  EnTetePage,
-  EtatVide,
-  Jauge,
-  LienBouton,
-  Tableau,
-  Td,
-  Th,
-  Tuile,
-} from "@/components/ui";
+import { Badge, Carte, EtatVide, LienBouton, Tableau, Td, Th } from "@/components/ui";
+import { CarteKpi, LigneJauge } from "@/components/kpi";
+import { SelecteurSaison } from "@/components/selecteur-saison";
 import { STATUTS_DOSSIER, MOYENS_PAIEMENT } from "@/lib/niger";
 import {
   alertePasseport,
   dateCourte,
+  initiales,
   joursRestants,
   nombre,
   pourcentage,
   xof,
   xofCompact,
 } from "@/lib/format";
-import type { DossierFinance, Groupe, Paiement } from "@/lib/database.types";
+import type { DossierFinance, Groupe, Paiement, Saison } from "@/lib/database.types";
 
 export const metadata: Metadata = { title: "Tableau de bord" };
 
-export default async function PageTableauDeBord() {
+/** Un visa est considéré obtenu dès que le dossier a dépassé ce stade. */
+const STATUTS_VISA_OBTENU = ["visa_obtenu", "parti", "revenu"];
+
+export default async function PageTableauDeBord({
+  searchParams,
+}: {
+  searchParams: Promise<{ saison?: string }>;
+}) {
   const session = await exigerSession();
+  const { saison: saisonParam } = await searchParams;
   const supabase = await creerClientServeur();
 
-  const [{ data: dossiersBruts }, { data: groupesBruts }, { data: paiementsBruts }] =
+  const { data: saisonsBrutes } = await supabase
+    .from("saisons")
+    .select("*")
+    .order("annee_greg", { ascending: false });
+  const saisons = (saisonsBrutes ?? []) as Saison[];
+
+  // Par défaut on ouvre sur la campagne en cours, pas sur l'historique complet.
+  const saisonActive =
+    saisonParam && saisons.some((s) => s.id === saisonParam)
+      ? saisonParam
+      : (saisons.find((s) => s.ouverte)?.id ?? null);
+  const saison = saisons.find((s) => s.id === saisonActive) ?? null;
+
+  let requeteDossiers = supabase.from("v_dossiers_finance").select("*");
+  let requeteGroupes = supabase.from("groupes").select("*").order("date_depart");
+  let requeteChambres = supabase.from("dossiers").select("groupe_id, numero_chambre, statut");
+
+  if (saisonActive) {
+    requeteDossiers = requeteDossiers.eq("saison_id", saisonActive);
+    requeteGroupes = requeteGroupes.eq("saison_id", saisonActive);
+    requeteChambres = requeteChambres.eq("saison_id", saisonActive);
+  }
+
+  const [{ data: dossiersBruts }, { data: groupesBruts }, { data: chambres }, { data: paiementsBruts }] =
     await Promise.all([
-      supabase.from("v_dossiers_finance").select("*"),
-      supabase
-        .from("groupes")
-        .select("*")
-        .not("date_depart", "is", null)
-        .gte("date_depart", new Date().toISOString().slice(0, 10))
-        .order("date_depart", { ascending: true })
-        .limit(4),
+      requeteDossiers,
+      requeteGroupes,
+      requeteChambres,
       supabase
         .from("paiements")
-        .select("*, dossiers(reference, pelerins(nom, prenom))")
+        .select("*, dossiers(reference, saison_id, pelerins(nom, prenom))")
         .eq("statut", "confirme")
         .order("cree_le", { ascending: false })
-        .limit(6),
+        .limit(20),
     ]);
 
   const dossiers = (dossiersBruts ?? []) as DossierFinance[];
   const groupes = (groupesBruts ?? []) as Groupe[];
-  const paiements = (paiementsBruts ?? []) as (Paiement & {
-    dossiers: { reference: string; pelerins: { nom: string; prenom: string } | null } | null;
-  })[];
 
+  type PaiementJoint = Paiement & {
+    dossiers: {
+      reference: string;
+      saison_id: string;
+      pelerins: { nom: string; prenom: string } | null;
+    } | null;
+  };
+  const paiements = ((paiementsBruts ?? []) as PaiementJoint[])
+    .filter((p) => !saisonActive || p.dossiers?.saison_id === saisonActive)
+    .slice(0, 5);
+
+  /* ---------------------------------------------------------------------- */
+  /* Indicateurs                                                             */
+  /* ---------------------------------------------------------------------- */
   const actifs = dossiers.filter((d) => d.statut !== "annule");
   const attendu = actifs.reduce((s, d) => s + d.net_xof, 0);
   const encaisse = actifs.reduce((s, d) => s + d.regle_xof, 0);
-  const restant = attendu - encaisse;
-  const soldes = actifs.filter((d) => d.solde_xof > 0);
+  const visasObtenus = actifs.filter((d) => STATUTS_VISA_OBTENU.includes(d.statut)).length;
+  const visasEnCours = actifs.filter((d) => d.statut === "visa_depose").length;
+  const piecesIncompletes = actifs.filter(
+    (d) => d.pieces_total > 0 && d.pieces_valides < d.pieces_total,
+  ).length;
 
-  const piecesIncompletes = actifs.filter((d) => d.pieces_valides < d.pieces_total).length;
+  const aujourdhui = new Date().toISOString().slice(0, 10);
+  const prochainGroupe =
+    groupes.find((g) => g.date_depart && g.date_depart >= aujourdhui) ?? groupes[0] ?? null;
 
-  const passeportsARisque = actifs
-    .map((d) => ({ d, alerte: alertePasseport(d.passeport_expire_le) }))
-    .filter((x) => x.alerte === "expire" || x.alerte === "insuffisante" || x.alerte === "bientot")
-    .sort((a, b) => (a.d.passeport_expire_le ?? "").localeCompare(b.d.passeport_expire_le ?? ""))
+  const membresGroupe = prochainGroupe
+    ? actifs.filter((d) => d.groupe_id === prochainGroupe.id)
+    : [];
+  const chambresAttribuees = prochainGroupe
+    ? (chambres ?? []).filter(
+        (c) => c.groupe_id === prochainGroupe.id && c.numero_chambre && c.statut !== "annule",
+      ).length
+    : 0;
+
+  const passeportsARisque = actifs.filter((d) => {
+    const a = alertePasseport(d.passeport_expire_le, prochainGroupe?.date_depart ?? null);
+    return a === "expire" || a === "insuffisante";
+  });
+
+  const recents = [...actifs]
+    .sort((a, b) => b.inscrit_le.localeCompare(a.inscrit_le))
     .slice(0, 6);
 
-  const parStatut = actifs.reduce<Record<string, number>>((acc, d) => {
-    acc[d.statut] = (acc[d.statut] ?? 0) + 1;
-    return acc;
-  }, {});
-
-  if (dossiers.length === 0) {
+  /* ---------------------------------------------------------------------- */
+  /* Premier lancement                                                       */
+  /* ---------------------------------------------------------------------- */
+  if (saisons.length === 0 || dossiers.length === 0) {
     return (
       <>
-        <EnTetePage
-          titre={`Bienvenue, ${session.profil.nom_complet.split(" ")[0]}`}
-          description="Votre espace est prêt. Trois étapes pour démarrer."
-        />
+        <div className="mb-6">
+          <h1 className="text-2xl font-semibold tracking-tight text-ardoise-950">
+            Bienvenue, {session.profil.nom_complet.split(" ")[0]}
+          </h1>
+          <p className="mt-1 text-sm text-ardoise-500">
+            {session.agence.nom} — trois étapes pour ouvrir votre campagne.
+          </p>
+        </div>
         <Carte>
           <ol className="divide-y divide-ardoise-200">
             {[
               {
                 n: 1,
-                titre: "Créez une saison et vos forfaits",
-                texte: "Hajj 1447, Omra Ramadan… avec les prix et l'acompte exigé.",
+                titre: "Créez la saison et vos forfaits",
+                texte: "Hajj 1448, Omra Ramadan… avec le quota accordé et l'acompte exigé.",
                 href: "/catalogue",
                 cta: "Ouvrir le catalogue",
               },
@@ -107,11 +167,11 @@ export default async function PageTableauDeBord() {
                 cta: "Créer un dossier",
               },
             ].map((e) => (
-              <li key={e.n} className="flex items-start gap-4 px-5 py-5">
+              <li key={e.n} className="flex flex-wrap items-start gap-4 px-5 py-5">
                 <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-marque-50 text-sm font-semibold text-marque-700">
                   {e.n}
                 </span>
-                <div className="flex-1">
+                <div className="min-w-[14rem] flex-1">
                   <p className="text-sm font-medium text-ardoise-900">{e.titre}</p>
                   <p className="mt-0.5 text-sm text-ardoise-500">{e.texte}</p>
                 </div>
@@ -128,130 +188,175 @@ export default async function PageTableauDeBord() {
 
   return (
     <>
-      <EnTetePage
-        titre="Tableau de bord"
-        description={`${session.agence.nom} — vue d'ensemble de la campagne en cours`}
-        action={
-          <LienBouton href="/dossiers/nouveau">Nouveau dossier</LienBouton>
-        }
-      />
+      {/* En-tête : campagne affichée et recherche globale */}
+      <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
+        <div className="flex flex-wrap items-center gap-3">
+          <h1 className="text-2xl font-semibold tracking-tight text-ardoise-950">
+            Espace agence
+          </h1>
+          <SelecteurSaison
+            saisons={saisons.map((s) => ({ id: s.id, libelle: s.libelle, type: s.type }))}
+            saisonActive={saisonActive}
+          />
+        </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <Tuile
-          libelle="Dossiers actifs"
+        <form action="/pelerins" className="relative">
+          <SearchIcon
+            className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ardoise-400"
+            aria-hidden
+          />
+          <input
+            type="search"
+            name="q"
+            placeholder="Rechercher un pèlerin, un passeport…"
+            aria-label="Rechercher un pèlerin"
+            className="w-72 rounded-lg border-0 bg-white py-2 pl-9 pr-3 text-sm ring-1 ring-inset ring-ardoise-300 placeholder:text-ardoise-400 focus:ring-2 focus:ring-inset focus:ring-marque-500"
+          />
+        </form>
+      </div>
+
+      {/* Indicateurs de campagne */}
+      <div className="grid gap-4 lg:grid-cols-3">
+        <CarteKpi
+          libelle="Quota accordé"
           valeur={nombre(actifs.length)}
-          detail={`${nombre(dossiers.length - actifs.length)} annulé(s)`}
-          ton="ok"
-        />
-        <Tuile
-          libelle="Encaissé"
-          valeur={xofCompact(encaisse)}
-          detail={`${pourcentage(encaisse, attendu)} % du montant attendu`}
-          ton="ok"
-        />
-        <Tuile
-          libelle="Reste à recouvrer"
-          valeur={xofCompact(restant)}
-          detail={`${nombre(soldes.length)} dossier(s) avec solde`}
-          ton={restant > 0 ? "attente" : "ok"}
-        />
-        <Tuile
-          libelle="Dossiers incomplets"
-          valeur={nombre(piecesIncompletes)}
-          detail="pièces justificatives manquantes"
-          ton={piecesIncompletes > 0 ? "alerte" : "ok"}
-        />
-      </div>
-
-      <div className="mt-4">
-        <Carte className="p-5">
-          <div className="flex items-baseline justify-between">
-            <h2 className="text-sm font-semibold text-ardoise-900">Recouvrement</h2>
-            <p className="tabular text-sm text-ardoise-500">
-              <span className="font-semibold text-ardoise-900">{xof(encaisse)}</span> sur{" "}
-              {xof(attendu)}
-            </p>
-          </div>
-          <div className="mt-3">
-            <Jauge valeur={pourcentage(encaisse, attendu)} />
-          </div>
-          <div className="mt-4 flex flex-wrap gap-2">
-            {Object.entries(parStatut).map(([statut, n]) => {
-              const meta = STATUTS_DOSSIER[statut as keyof typeof STATUTS_DOSSIER];
-              return (
-                <Badge key={statut} ton={meta?.ton ?? "neutre"}>
-                  {meta?.label ?? statut} · {n}
-                </Badge>
-              );
-            })}
-          </div>
-        </Carte>
-      </div>
-
-      <div className="mt-4 grid gap-4 lg:grid-cols-2">
-        <Carte
-          titre="Passeports à surveiller"
-          action={
-            <Link href="/pelerins" className="text-xs font-medium text-marque-700 hover:underline">
-              Tous les pèlerins
-            </Link>
+          sur={saison?.quota ? `/ ${nombre(saison.quota)}` : undefined}
+          atteint={saison?.quota ? actifs.length : undefined}
+          objectif={saison?.quota ?? undefined}
+          detail={
+            saison?.quota
+              ? `Pèlerins inscrits sur le quota accordé à l'agence${
+                  actifs.length > saison.quota
+                    ? ` — dépassement de ${actifs.length - saison.quota}`
+                    : ""
+                }`
+              : "Aucun quota renseigné pour cette saison"
           }
-        >
-          {passeportsARisque.length === 0 ? (
-            <EtatVide
-              titre="Aucune alerte"
-              description="Tous les passeports couvrent la validité exigée pour le visa saoudien."
-            />
-          ) : (
+          ton={saison?.quota && actifs.length > saison.quota ? "alerte" : "ok"}
+          Icone={UsersIcon}
+        />
+
+        <CarteKpi
+          libelle="Recouvrement"
+          valeur={xofCompact(encaisse)}
+          sur={`/ ${xofCompact(attendu)}`}
+          atteint={encaisse}
+          objectif={attendu}
+          detail={`Encaissé sur le montant attendu — reste ${xof(attendu - encaisse)}`}
+          ton={attendu > 0 && encaisse < attendu ? "attente" : "ok"}
+          Icone={WalletIcon}
+          accentue
+        />
+
+        <CarteKpi
+          libelle="Visas obtenus"
+          valeur={nombre(visasObtenus)}
+          sur={`/ ${nombre(actifs.length)}`}
+          atteint={visasObtenus}
+          objectif={actifs.length}
+          detail={
+            visasEnCours > 0
+              ? `${nombre(visasEnCours)} dossier(s) déposés en attente de réponse`
+              : "Aucun dossier en attente auprès du consulat"
+          }
+          ton="info"
+          Icone={StampIcon}
+        />
+      </div>
+
+      <div className="mt-4 grid gap-4 lg:grid-cols-3">
+        {/* Inscriptions récentes */}
+        <div className="lg:col-span-2">
+          <Carte
+            titre="Inscriptions récentes"
+            action={
+              <span className="rounded-full bg-ardoise-100 px-2.5 py-1 text-xs font-medium text-ardoise-700">
+                {nombre(actifs.length)} pèlerin{actifs.length > 1 ? "s" : ""} actif
+                {actifs.length > 1 ? "s" : ""}
+              </span>
+            }
+          >
             <Tableau>
               <thead>
                 <tr>
                   <Th>Pèlerin</Th>
-                  <Th>Expire le</Th>
-                  <Th>Situation</Th>
+                  <Th>Statut</Th>
+                  <Th>Montant réglé</Th>
+                  <Th />
                 </tr>
               </thead>
               <tbody className="divide-y divide-ardoise-100">
-                {passeportsARisque.map(({ d, alerte }) => (
-                  <tr key={d.dossier_id}>
-                    <Td>
-                      <Link
-                        href={`/dossiers/${d.dossier_id}`}
-                        className="font-medium text-ardoise-900 hover:text-marque-700"
-                      >
-                        {d.prenom} {d.nom}
-                      </Link>
-                      <span className="block text-xs text-ardoise-400">{d.matricule}</span>
-                    </Td>
-                    <Td className="tabular">{dateCourte(d.passeport_expire_le)}</Td>
-                    <Td>
-                      {alerte === "expire" ? (
-                        <Badge ton="alerte">Expiré</Badge>
-                      ) : alerte === "insuffisante" ? (
-                        <Badge ton="alerte">Moins de 6 mois</Badge>
-                      ) : (
-                        <Badge ton="attente">À renouveler</Badge>
-                      )}
-                    </Td>
-                  </tr>
-                ))}
+                {recents.map((d) => {
+                  const part = pourcentage(d.regle_xof, d.net_xof);
+                  const statut = STATUTS_DOSSIER[d.statut];
+                  return (
+                    <tr key={d.dossier_id} className="hover:bg-ardoise-50">
+                      <Td>
+                        <Link
+                          href={`/pelerins/${d.pelerin_id}`}
+                          className="flex items-center gap-3"
+                        >
+                          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-marque-50 text-xs font-semibold text-marque-700">
+                            {initiales(d.nom, d.prenom)}
+                          </span>
+                          <span className="min-w-0">
+                            <span className="block truncate font-medium text-ardoise-900">
+                              {d.prenom} {d.nom}
+                            </span>
+                            <span className="tabular block text-xs text-ardoise-400">
+                              {d.matricule}
+                            </span>
+                          </span>
+                        </Link>
+                      </Td>
+                      <Td>
+                        <Badge ton={statut.ton}>{statut.label}</Badge>
+                      </Td>
+                      <Td>
+                        <span className="tabular block text-sm font-medium text-ardoise-900">
+                          {xof(d.regle_xof)}
+                        </span>
+                        <span className="mt-1.5 block h-1 w-28 overflow-hidden rounded-full bg-ardoise-100">
+                          <span
+                            className={`block h-full rounded-full ${
+                              d.solde_xof > 0 ? "bg-sable-400" : "bg-marque-600"
+                            }`}
+                            style={{ width: `${part}%` }}
+                          />
+                        </span>
+                      </Td>
+                      <Td className="text-right">
+                        <Link
+                          href={`/dossiers/${d.dossier_id}`}
+                          className="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium text-ardoise-700 ring-1 ring-inset ring-ardoise-300 hover:bg-white"
+                        >
+                          <FileTextIcon className="h-3.5 w-3.5" aria-hidden />
+                          Voir le dossier
+                        </Link>
+                      </Td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </Tableau>
-          )}
-        </Carte>
+            <div className="border-t border-ardoise-200 px-5 py-3">
+              <Link
+                href="/dossiers"
+                className="inline-flex items-center gap-1 text-sm font-medium text-marque-700 hover:underline"
+              >
+                Tous les dossiers
+                <ArrowRightIcon className="h-3.5 w-3.5" aria-hidden />
+              </Link>
+            </div>
+          </Carte>
+        </div>
 
-        <Carte
-          titre="Prochains départs"
-          action={
-            <Link href="/groupes" className="text-xs font-medium text-marque-700 hover:underline">
-              Tous les groupes
-            </Link>
-          }
-        >
-          {groupes.length === 0 ? (
+        {/* Vol et hébergement */}
+        <Carte titre="Vol et hébergement">
+          {!prochainGroupe ? (
             <EtatVide
-              titre="Aucun départ programmé"
-              description="Créez un groupe de départ pour planifier vols et encadrement."
+              titre="Aucun groupe de départ"
+              description="Créez un groupe pour planifier le vol et l'encadrement."
               action={
                 <LienBouton href="/groupes" variante="secondaire">
                   Créer un groupe
@@ -259,84 +364,199 @@ export default async function PageTableauDeBord() {
               }
             />
           ) : (
+            <>
+              <div className="border-b border-ardoise-100 px-5 py-4">
+                <div className="flex items-center justify-between gap-3">
+                  <span className="flex items-center gap-2 text-sm font-medium text-ardoise-900">
+                    <PlaneTakeoffIcon className="h-4 w-4 text-ardoise-400" aria-hidden />
+                    {prochainGroupe.numero_vol ?? prochainGroupe.nom}
+                  </span>
+                  {(() => {
+                    const j = joursRestants(prochainGroupe.date_depart);
+                    if (j === null) return null;
+                    if (j < 0) return <Badge ton="neutre">Parti</Badge>;
+                    if (j === 0) return <Badge ton="alerte">Aujourd&apos;hui</Badge>;
+                    return <Badge ton={j <= 30 ? "attente" : "info"}>Dans {j} j</Badge>;
+                  })()}
+                </div>
+                <p className="mt-1.5 text-xs text-ardoise-500">
+                  {prochainGroupe.compagnie_aerienne ?? "Compagnie non renseignée"} · départ{" "}
+                  {dateCourte(prochainGroupe.date_depart)}
+                  {prochainGroupe.date_retour
+                    ? ` · retour ${dateCourte(prochainGroupe.date_retour)}`
+                    : ""}
+                </p>
+                <p className="mt-0.5 text-xs text-ardoise-500">
+                  Au départ de {prochainGroupe.aeroport_depart ?? "NIM"} — {prochainGroupe.nom}
+                </p>
+              </div>
+
+              <div className="divide-y divide-ardoise-100">
+                <LigneJauge
+                  libelle="Places pourvues"
+                  atteint={membresGroupe.length}
+                  objectif={prochainGroupe.capacite}
+                  unite="pèlerins"
+                  ton={
+                    prochainGroupe.capacite && membresGroupe.length > prochainGroupe.capacite
+                      ? "alerte"
+                      : "ok"
+                  }
+                />
+                <LigneJauge
+                  libelle="Chambres attribuées"
+                  atteint={chambresAttribuees}
+                  objectif={membresGroupe.length || null}
+                  ton={chambresAttribuees < membresGroupe.length ? "attente" : "ok"}
+                />
+                <LigneJauge
+                  libelle="Dossiers soldés"
+                  atteint={membresGroupe.filter((m) => m.solde_xof <= 0).length}
+                  objectif={membresGroupe.length || null}
+                  ton={
+                    membresGroupe.some((m) => m.solde_xof > 0) ? "attente" : "ok"
+                  }
+                />
+              </div>
+
+              {prochainGroupe.encadrant_nom && (
+                <p className="border-t border-ardoise-100 px-5 py-3 text-xs text-ardoise-500">
+                  Encadrant : {prochainGroupe.encadrant_nom}
+                </p>
+              )}
+
+              <div className="border-t border-ardoise-200 px-5 py-3">
+                <Link
+                  href="/groupes"
+                  className="inline-flex items-center gap-1.5 text-sm font-medium text-marque-700 hover:underline"
+                >
+                  <BedDoubleIcon className="h-4 w-4" aria-hidden />
+                  Manifeste du groupe
+                </Link>
+              </div>
+            </>
+          )}
+        </Carte>
+      </div>
+
+      {/* Points de blocage avant départ */}
+      <div className="mt-4 grid gap-4 lg:grid-cols-3">
+        <div className="lg:col-span-2">
+          <Carte
+            titre="À régler avant le départ"
+            action={
+              <Link href="/dossiers" className="text-xs font-medium text-marque-700 hover:underline">
+                Filtrer les dossiers
+              </Link>
+            }
+          >
+            {passeportsARisque.length === 0 && piecesIncompletes === 0 ? (
+              <EtatVide
+                titre="Aucun blocage"
+                description="Passeports valides et pièces justificatives complètes sur tous les dossiers."
+              />
+            ) : (
+              <>
+                <div className="grid gap-px bg-ardoise-200 sm:grid-cols-2">
+                  <div className="bg-white px-5 py-3">
+                    <p className="text-xs uppercase tracking-wide text-ardoise-500">
+                      Dossiers incomplets
+                    </p>
+                    <p
+                      className={`tabular mt-0.5 text-lg font-semibold ${
+                        piecesIncompletes > 0 ? "text-sable-700" : "text-marque-700"
+                      }`}
+                    >
+                      {nombre(piecesIncompletes)}
+                    </p>
+                  </div>
+                  <div className="bg-white px-5 py-3">
+                    <p className="text-xs uppercase tracking-wide text-ardoise-500">
+                      Passeports à risque
+                    </p>
+                    <p
+                      className={`tabular mt-0.5 text-lg font-semibold ${
+                        passeportsARisque.length > 0 ? "text-rose-600" : "text-marque-700"
+                      }`}
+                    >
+                      {nombre(passeportsARisque.length)}
+                    </p>
+                  </div>
+                </div>
+
+                {passeportsARisque.length > 0 && (
+                  <ul className="divide-y divide-ardoise-100">
+                    {passeportsARisque.slice(0, 5).map((d) => (
+                      <li
+                        key={d.dossier_id}
+                        className="flex items-center justify-between gap-3 px-5 py-3"
+                      >
+                        <span className="flex min-w-0 items-center gap-2.5">
+                          <TriangleAlertIcon
+                            className="h-4 w-4 shrink-0 text-rose-500"
+                            aria-hidden
+                          />
+                          <Link
+                            href={`/dossiers/${d.dossier_id}`}
+                            className="truncate text-sm font-medium text-ardoise-900 hover:text-marque-700"
+                          >
+                            {d.prenom} {d.nom}
+                          </Link>
+                        </span>
+                        <span className="tabular shrink-0 text-xs text-ardoise-500">
+                          expire le {dateCourte(d.passeport_expire_le)}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </>
+            )}
+          </Carte>
+        </div>
+
+        <Carte
+          titre="Derniers encaissements"
+          action={
+            <Link href="/paiements" className="text-xs font-medium text-marque-700 hover:underline">
+              Journal
+            </Link>
+          }
+        >
+          {paiements.length === 0 ? (
+            <EtatVide titre="Aucun encaissement" />
+          ) : (
             <ul className="divide-y divide-ardoise-100">
-              {groupes.map((g) => {
-                const jours = joursRestants(g.date_depart);
-                const inscrits = actifs.filter((d) => d.groupe_id === g.id).length;
-                return (
-                  <li key={g.id} className="flex items-center justify-between gap-4 px-5 py-3.5">
-                    <div className="min-w-0">
-                      <p className="truncate text-sm font-medium text-ardoise-900">{g.nom}</p>
-                      <p className="text-xs text-ardoise-500">
-                        {dateCourte(g.date_depart)}
-                        {g.compagnie_aerienne ? ` · ${g.compagnie_aerienne}` : ""}
-                        {g.numero_vol ? ` ${g.numero_vol}` : ""}
-                      </p>
-                    </div>
-                    <div className="shrink-0 text-right">
-                      <p className="tabular text-sm font-medium text-ardoise-900">
-                        {inscrits}
-                        {g.capacite ? ` / ${g.capacite}` : ""}
-                      </p>
-                      {jours !== null && (
-                        <p className="text-xs text-ardoise-500">
-                          {jours > 0 ? `dans ${jours} j` : "aujourd'hui"}
-                        </p>
-                      )}
-                    </div>
-                  </li>
-                );
-              })}
+              {paiements.map((p) => (
+                <li key={p.id} className="flex items-center justify-between gap-3 px-5 py-3">
+                  <span className="min-w-0">
+                    <span className="block truncate text-sm font-medium text-ardoise-900">
+                      {p.dossiers?.pelerins
+                        ? `${p.dossiers.pelerins.prenom} ${p.dossiers.pelerins.nom}`
+                        : p.numero_recu}
+                    </span>
+                    <span className="block text-xs text-ardoise-500">
+                      {dateCourte(p.paye_le)} · {MOYENS_PAIEMENT[p.moyen].court}
+                    </span>
+                  </span>
+                  <span className="tabular shrink-0 text-sm font-medium text-ardoise-900">
+                    {xof(p.montant_xof)}
+                  </span>
+                </li>
+              ))}
             </ul>
           )}
         </Carte>
       </div>
 
-      <div className="mt-4">
-        <Carte
-          titre="Derniers encaissements"
-          action={
-            <Link href="/paiements" className="text-xs font-medium text-marque-700 hover:underline">
-              Journal complet
-            </Link>
-          }
-        >
-          {paiements.length === 0 ? (
-            <EtatVide titre="Aucun encaissement enregistré" />
-          ) : (
-            <Tableau>
-              <thead>
-                <tr>
-                  <Th>Reçu</Th>
-                  <Th>Pèlerin</Th>
-                  <Th>Moyen</Th>
-                  <Th>Date</Th>
-                  <Th className="text-right">Montant</Th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-ardoise-100">
-                {paiements.map((p) => (
-                  <tr key={p.id}>
-                    <Td className="tabular font-medium text-ardoise-900">{p.numero_recu}</Td>
-                    <Td>
-                      {p.dossiers?.pelerins
-                        ? `${p.dossiers.pelerins.prenom} ${p.dossiers.pelerins.nom}`
-                        : "—"}
-                    </Td>
-                    <Td>
-                      <Badge>{MOYENS_PAIEMENT[p.moyen].court}</Badge>
-                    </Td>
-                    <Td className="tabular">{dateCourte(p.paye_le)}</Td>
-                    <Td className="tabular text-right font-medium text-ardoise-900">
-                      {xof(p.montant_xof)}
-                    </Td>
-                  </tr>
-                ))}
-              </tbody>
-            </Tableau>
-          )}
-        </Carte>
-      </div>
+      {/* Action principale, toujours accessible */}
+      <Link
+        href="/pelerins/nouveau"
+        className="sans-impression fixed bottom-6 right-6 z-20 inline-flex items-center gap-2 rounded-full bg-marque-700 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-marque-900/20 transition-colors hover:bg-marque-800"
+      >
+        <UserPlusIcon className="h-4 w-4" aria-hidden />
+        Enregistrer un pèlerin
+      </Link>
     </>
   );
 }
