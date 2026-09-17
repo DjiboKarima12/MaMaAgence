@@ -128,63 +128,9 @@ export default async function PageTableauDeBord({
     .sort((a, b) => b.inscrit_le.localeCompare(a.inscrit_le))
     .slice(0, 6);
 
-  /* ---------------------------------------------------------------------- */
-  /* Premier lancement                                                       */
-  /* ---------------------------------------------------------------------- */
-  if (saisons.length === 0 || dossiers.length === 0) {
-    return (
-      <>
-        <div className="mb-6">
-          <h1 className="text-2xl font-semibold tracking-tight text-ardoise-950">
-            Bienvenue, {session.profil.nom_complet.split(" ")[0]}
-          </h1>
-          <p className="mt-1 text-sm text-ardoise-500">
-            {session.agence.nom} — trois étapes pour ouvrir votre campagne.
-          </p>
-        </div>
-        <Carte>
-          <ol className="divide-y divide-ardoise-200">
-            {[
-              {
-                n: 1,
-                titre: "Créez la saison et vos forfaits",
-                texte: "Hajj 1448, Omra Ramadan… avec le quota accordé et l'acompte exigé.",
-                href: "/catalogue",
-                cta: "Ouvrir le catalogue",
-              },
-              {
-                n: 2,
-                titre: "Enregistrez vos pèlerins",
-                texte: "État civil, passeport, contact d'urgence et mahram le cas échéant.",
-                href: "/pelerins/nouveau",
-                cta: "Ajouter un pèlerin",
-              },
-              {
-                n: 3,
-                titre: "Ouvrez les dossiers d'inscription",
-                texte: "Les pièces à fournir et l'échéancier sont créés automatiquement.",
-                href: "/dossiers/nouveau",
-                cta: "Créer un dossier",
-              },
-            ].map((e) => (
-              <li key={e.n} className="flex flex-wrap items-start gap-4 px-5 py-5">
-                <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-marque-50 text-sm font-semibold text-marque-700">
-                  {e.n}
-                </span>
-                <div className="min-w-[14rem] flex-1">
-                  <p className="text-sm font-medium text-ardoise-900">{e.titre}</p>
-                  <p className="mt-0.5 text-sm text-ardoise-500">{e.texte}</p>
-                </div>
-                <LienBouton href={e.href} variante="secondaire">
-                  {e.cta}
-                </LienBouton>
-              </li>
-            ))}
-          </ol>
-        </Carte>
-      </>
-    );
-  }
+  // Aucune donnee encore : on garde la mise en page complete, a zero, et on
+  // ajoute un rappel de demarrage au-dessus plutot que de la remplacer.
+  const espaceVide = dossiers.length === 0;
 
   return (
     <>
@@ -214,6 +160,38 @@ export default async function PageTableauDeBord({
           />
         </form>
       </div>
+
+      {espaceVide && (
+        <div className="mb-4 rounded-xl border border-marque-200 bg-marque-50 px-5 py-4">
+          <p className="text-sm font-semibold text-marque-900">
+            Votre espace est prêt, {session.profil.nom_complet.split(" ")[0]}
+          </p>
+          <p className="mt-0.5 text-sm text-marque-800">
+            Les indicateurs ci-dessous resteront à zéro jusqu&apos;au premier dossier
+            d&apos;inscription.
+          </p>
+          <ol className="mt-3 grid gap-2 sm:grid-cols-3">
+            {[
+              { n: 1, titre: "Saison et forfaits", href: "/catalogue" },
+              { n: 2, titre: "Pèlerins", href: "/pelerins/nouveau" },
+              { n: 3, titre: "Dossiers d'inscription", href: "/dossiers/nouveau" },
+            ].map((e) => (
+              <li key={e.n}>
+                <Link
+                  href={e.href}
+                  className="flex items-center gap-2.5 rounded-lg bg-white px-3 py-2.5 text-sm ring-1 ring-inset ring-marque-200 hover:ring-marque-400"
+                >
+                  <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-marque-100 text-xs font-semibold text-marque-700">
+                    {e.n}
+                  </span>
+                  <span className="font-medium text-ardoise-900">{e.titre}</span>
+                  <ArrowRightIcon className="ml-auto h-3.5 w-3.5 text-ardoise-400" aria-hidden />
+                </Link>
+              </li>
+            ))}
+          </ol>
+        </div>
+      )}
 
       {/* Indicateurs de campagne */}
       <div className="grid gap-4 lg:grid-cols-3">
@@ -276,69 +254,76 @@ export default async function PageTableauDeBord({
               </span>
             }
           >
-            <Tableau>
-              <thead>
-                <tr>
-                  <Th>Pèlerin</Th>
-                  <Th>Statut</Th>
-                  <Th>Montant réglé</Th>
-                  <Th />
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-ardoise-100">
-                {recents.map((d) => {
-                  const part = pourcentage(d.regle_xof, d.net_xof);
-                  const statut = STATUTS_DOSSIER[d.statut];
-                  return (
-                    <tr key={d.dossier_id} className="hover:bg-ardoise-50">
-                      <Td>
-                        <Link
-                          href={`/pelerins/${d.pelerin_id}`}
-                          className="flex items-center gap-3"
-                        >
-                          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-marque-50 text-xs font-semibold text-marque-700">
-                            {initiales(d.nom, d.prenom)}
-                          </span>
-                          <span className="min-w-0">
-                            <span className="block truncate font-medium text-ardoise-900">
-                              {d.prenom} {d.nom}
+            {recents.length === 0 ? (
+              <EtatVide
+                titre="Aucune inscription"
+                description="Les pèlerins inscrits à cette campagne apparaîtront ici, du plus récent au plus ancien."
+              />
+            ) : (
+              <Tableau>
+                <thead>
+                  <tr>
+                    <Th>Pèlerin</Th>
+                    <Th>Statut</Th>
+                    <Th>Montant réglé</Th>
+                    <Th />
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-ardoise-100">
+                  {recents.map((d) => {
+                    const part = pourcentage(d.regle_xof, d.net_xof);
+                    const statut = STATUTS_DOSSIER[d.statut];
+                    return (
+                      <tr key={d.dossier_id} className="hover:bg-ardoise-50">
+                        <Td>
+                          <Link
+                            href={`/pelerins/${d.pelerin_id}`}
+                            className="flex items-center gap-3"
+                          >
+                            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-marque-50 text-xs font-semibold text-marque-700">
+                              {initiales(d.nom, d.prenom)}
                             </span>
-                            <span className="tabular block text-xs text-ardoise-400">
-                              {d.matricule}
+                            <span className="min-w-0">
+                              <span className="block truncate font-medium text-ardoise-900">
+                                {d.prenom} {d.nom}
+                              </span>
+                              <span className="tabular block text-xs text-ardoise-400">
+                                {d.matricule}
+                              </span>
                             </span>
+                          </Link>
+                        </Td>
+                        <Td>
+                          <Badge ton={statut.ton}>{statut.label}</Badge>
+                        </Td>
+                        <Td>
+                          <span className="tabular block text-sm font-medium text-ardoise-900">
+                            {xof(d.regle_xof)}
                           </span>
-                        </Link>
-                      </Td>
-                      <Td>
-                        <Badge ton={statut.ton}>{statut.label}</Badge>
-                      </Td>
-                      <Td>
-                        <span className="tabular block text-sm font-medium text-ardoise-900">
-                          {xof(d.regle_xof)}
-                        </span>
-                        <span className="mt-1.5 block h-1 w-28 overflow-hidden rounded-full bg-ardoise-100">
-                          <span
-                            className={`block h-full rounded-full ${
-                              d.solde_xof > 0 ? "bg-sable-400" : "bg-marque-600"
-                            }`}
-                            style={{ width: `${part}%` }}
-                          />
-                        </span>
-                      </Td>
-                      <Td className="text-right">
-                        <Link
-                          href={`/dossiers/${d.dossier_id}`}
-                          className="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium text-ardoise-700 ring-1 ring-inset ring-ardoise-300 hover:bg-white"
-                        >
-                          <FileTextIcon className="h-3.5 w-3.5" aria-hidden />
-                          Voir le dossier
-                        </Link>
-                      </Td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </Tableau>
+                          <span className="mt-1.5 block h-1 w-28 overflow-hidden rounded-full bg-ardoise-100">
+                            <span
+                              className={`block h-full rounded-full ${
+                                d.solde_xof > 0 ? "bg-sable-400" : "bg-marque-600"
+                              }`}
+                              style={{ width: `${part}%` }}
+                            />
+                          </span>
+                        </Td>
+                        <Td className="text-right">
+                          <Link
+                            href={`/dossiers/${d.dossier_id}`}
+                            className="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium text-ardoise-700 ring-1 ring-inset ring-ardoise-300 hover:bg-white"
+                          >
+                            <FileTextIcon className="h-3.5 w-3.5" aria-hidden />
+                            Voir le dossier
+                          </Link>
+                        </Td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </Tableau>
+            )}
             <div className="border-t border-ardoise-200 px-5 py-3">
               <Link
                 href="/dossiers"
