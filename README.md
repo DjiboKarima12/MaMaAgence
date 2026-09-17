@@ -37,11 +37,19 @@ ou `eu-central-1` pour une latence correcte depuis le Niger).
 
 ### 2. Appliquer le schéma
 
-Dans le dashboard Supabase → **SQL Editor**, collez et exécutez le contenu de
-[`supabase/migrations/0001_init.sql`](supabase/migrations/0001_init.sql).
+Dans le dashboard Supabase → **SQL Editor**, exécutez les migrations dans
+l'ordre :
 
-Ce script crée les tables, les déclencheurs de numérotation, la vue financière,
-le bucket de stockage et **toutes les politiques RLS**.
+1. [`supabase/migrations/0001_init.sql`](supabase/migrations/0001_init.sql) —
+   tables, déclencheurs de numérotation, vue financière, bucket de stockage et
+   **toutes les politiques RLS**.
+2. [`supabase/migrations/0002_durcir_numerotation.sql`](supabase/migrations/0002_durcir_numerotation.sql) —
+   retire l'accès public à `prochain_numero()`, qui écrit dans les compteurs en
+   contournant la RLS et restait appelable par n'importe quel visiteur.
+
+Les deux sont nécessaires : sans la seconde, un tiers connaissant l'identifiant
+d'une agence peut faire avancer ses compteurs et créer des trous dans la
+numérotation des reçus.
 
 ### 3. Configurer les variables d'environnement
 
