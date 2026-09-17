@@ -596,23 +596,62 @@ grant execute on function creer_agence(text, text, text, text) to authenticated;
 
 -- =============================================================================
 --  Stockage des pieces jointes
+--
+--  Le bucket et ses politiques sont crees dans un bloc tolerant : selon le
+--  projet, le role du SQL Editor n'a pas toujours le droit de modifier
+--  storage.objects. Un echec ici ne doit pas faire perdre tout le schema
+--  metier ; les regles restent alors a poser depuis Storage > Policies.
 -- =============================================================================
-insert into storage.buckets (id, name, public)
-values ('documents', 'documents', false)
-on conflict (id) do nothing;
+do $storage$
+begin
+  insert into storage.buckets (id, name, public)
+  values ('documents', 'documents', false)
+  on conflict (id) do nothing;
 
-create policy "documents lecture agence" on storage.objects
-  for select using (
-    bucket_id = 'documents'
-    and (storage.foldername(name))[1] = public.agence_courante()::text
-  );
-create policy "documents ecriture agence" on storage.objects
-  for insert with check (
-    bucket_id = 'documents'
-    and (storage.foldername(name))[1] = public.agence_courante()::text
-  );
-create policy "documents suppression agence" on storage.objects
-  for delete using (
-    bucket_id = 'documents'
-    and (storage.foldername(name))[1] = public.agence_courante()::text
-  );
+  if not exists (
+    select 1 from pg_policies
+    where schemaname = 'storage' and tablename = 'objects'
+      and policyname = 'documents lecture agence'
+  ) then
+    execute $p$
+      create policy "documents lecture agence" on storage.objects
+        for select using (
+          bucket_id = 'documents'
+          and (storage.foldername(name))[1] = public.agence_courante()::text
+        )
+    $p$;
+  end if;
+
+  if not exists (
+    select 1 from pg_policies
+    where schemaname = 'storage' and tablename = 'objects'
+      and policyname = 'documents ecriture agence'
+  ) then
+    execute $p$
+      create policy "documents ecriture agence" on storage.objects
+        for insert with check (
+          bucket_id = 'documents'
+          and (storage.foldername(name))[1] = public.agence_courante()::text
+        )
+    $p$;
+  end if;
+
+  if not exists (
+    select 1 from pg_policies
+    where schemaname = 'storage' and tablename = 'objects'
+      and policyname = 'documents suppression agence'
+  ) then
+    execute $p$
+      create policy "documents suppression agence" on storage.objects
+        for delete using (
+          bucket_id = 'documents'
+          and (storage.foldername(name))[1] = public.agence_courante()::text
+        )
+    $p$;
+  end if;
+
+exception
+  when insufficient_privilege then
+    raise notice 'Stockage non configure (droits insuffisants) : creez le bucket "documents" et ses politiques depuis Storage > Policies. Le reste du schema est installe.';
+end
+$storage$;
