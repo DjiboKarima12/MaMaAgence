@@ -1,0 +1,74 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: ui-sans-serif, system-ui, "Segoe UI", Roboto, sans-serif;
+
+  /* Vert profond : couleur dominante du produit */
+  --color-marque-50: #edfbf5;
+  --color-marque-100: #d3f5e5;
+  --color-marque-200: #a9eacd;
+  --color-marque-300: #73d8ae;
+  --color-marque-400: #3ebd8c;
+  --color-marque-500: #1ba172;
+  --color-marque-600: #0f815c;
+  --color-marque-700: #0d674c;
+  --color-marque-800: #0e523d;
+  --color-marque-900: #0c4434;
+  --color-marque-950: #04261d;
+
+  /* Accent sable, pour les rappels financiers */
+  --color-sable-50: #fdf8ed;
+  --color-sable-100: #f8ecce;
+  --color-sable-200: #f0d799;
+  --color-sable-300: #e6ba5c;
+  --color-sable-400: #dea033;
+  --color-sable-500: #c9821c;
+  --color-sable-600: #a86215;
+  --color-sable-700: #874715;
+  --color-sable-800: #713918;
+  --color-sable-900: #602f18;
+
+  --color-ardoise-50: #f7f8f8;
+  --color-ardoise-100: #eeeff1;
+  --color-ardoise-200: #d9dce0;
+  --color-ardoise-300: #b7bdc4;
+  --color-ardoise-400: #8f98a3;
+  --color-ardoise-500: #717b88;
+  --color-ardoise-600: #5b636f;
+  --color-ardoise-700: #4a515b;
+  --color-ardoise-800: #40454d;
+  --color-ardoise-900: #383c43;
+  --color-ardoise-950: #23262b;
+}
+
+:root {
+  color-scheme: light;
+}
+
+body {
+  background-color: var(--color-ardoise-50);
+  color: var(--color-ardoise-900);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Tabulations chiffrées alignées : indispensable pour des colonnes de FCFA */
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+@utility carte {
+  background-color: #fff;
+  border: 1px solid var(--color-ardoise-200);
+  border-radius: 0.75rem;
+}
+
+/* Impression des reçus : on masque la navigation */
+@media print {
+  .sans-impression {
+    display: none !important;
+  }
+  body {
+    background: #fff;
+  }
+}
