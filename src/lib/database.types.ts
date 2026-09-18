@@ -33,6 +33,8 @@ export type MoyenPaiement =
   | "virement_bancaire"
   | "cheque"
   | "autre";
+export type VilleSejour = "makkah" | "madinah";
+export type OccupationChambre = "hommes" | "femmes" | "famille";
 export type StatutPaiement = "en_attente" | "confirme" | "annule";
 
 export type Agence = {
@@ -158,6 +160,8 @@ export type Dossier = {
   type_chambre: string | null;
   numero_chambre: string | null;
   aeroport_prefere: string | null;
+  chambre_makkah_id: string | null;
+  chambre_madinah_id: string | null;
   inscrit_le: string;
   annule_le: string | null;
   motif_annulation: string | null;
@@ -206,6 +210,26 @@ export type Paiement = {
   note: string | null;
   cree_le: string;
 }
+
+export type Chambre = {
+  id: string;
+  agence_id: string;
+  groupe_id: string;
+  ville: VilleSejour;
+  hotel: string | null;
+  etage: string | null;
+  numero: string;
+  capacite: number;
+  occupation: OccupationChambre;
+  notes: string | null;
+  cree_le: string;
+};
+
+/** Vue v_chambres_occupation : la chambre et son remplissage. */
+export type ChambreOccupation = Chambre & {
+  occupants: number;
+  lits_libres: number;
+};
 
 /** Vue v_dossiers_finance : dossier + pèlerin + solde, en une ligne. */
 export type DossierFinance = {
@@ -298,10 +322,18 @@ export type Database = {
         Paiement,
         [VersUn<"agence_id", "agences">, VersUn<"dossier_id", "dossiers">]
       >;
+      chambres: Table<
+        Chambre,
+        [VersUn<"agence_id", "agences">, VersUn<"groupe_id", "groupes">]
+      >;
     };
     Views: {
       v_dossiers_finance: {
         Row: DossierFinance;
+        Relationships: [];
+      };
+      v_chambres_occupation: {
+        Row: ChambreOccupation;
         Relationships: [];
       };
     };
@@ -316,6 +348,19 @@ export type Database = {
         Returns: string;
       };
       agence_courante: { Args: Record<string, never>; Returns: string };
+      creer_chambres_en_serie: {
+        Args: {
+          p_groupe: string;
+          p_ville: VilleSejour;
+          p_hotel?: string | null;
+          p_etage?: string | null;
+          p_numero_depart: number;
+          p_nombre: number;
+          p_capacite: number;
+          p_occupation: OccupationChambre;
+        };
+        Returns: number;
+      };
       role_courant: { Args: Record<string, never>; Returns: UserRole };
     };
     Enums: {
@@ -327,6 +372,8 @@ export type Database = {
       statut_document: StatutDocument;
       moyen_paiement: MoyenPaiement;
       statut_paiement: StatutPaiement;
+      ville_sejour: VilleSejour;
+      occupation_chambre: OccupationChambre;
     };
     CompositeTypes: Record<string, never>;
   };

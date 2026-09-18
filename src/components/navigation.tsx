@@ -7,6 +7,7 @@ import { libelleRole } from "@/lib/roles";
 import type { UserRole } from "@/lib/database.types";
 import {
   BanknoteIcon,
+  BedDoubleIcon,
   FolderOpenIcon,
   LayoutDashboardIcon,
   LogOutIcon,
@@ -24,6 +25,7 @@ const LIENS = [
   { href: "/dossiers", label: "Dossiers", Icone: FolderOpenIcon },
   { href: "/paiements", label: "Paiements", Icone: BanknoteIcon },
   { href: "/groupes", label: "Groupes de départ", Icone: PlaneTakeoffIcon },
+  { href: "/logistique", label: "Hébergement", Icone: BedDoubleIcon },
   { href: "/catalogue", label: "Saisons & forfaits", Icone: PackageIcon },
   { href: "/parametres", label: "Paramètres", Icone: SettingsIcon },
 ];

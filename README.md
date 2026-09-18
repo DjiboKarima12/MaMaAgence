@@ -14,6 +14,7 @@ justificatives et ses encaissements en francs CFA.
 | Inscription | Parcours guidé en trois étapes — identité, pièces et santé, premier versement — avec lecture de la bande MRZ du passeport |
 | Paiements | Échéancier, encaissement multi-moyens, reçu numéroté et imprimable, montant en toutes lettres |
 | Groupes | Manifeste de départ, vol, encadrant, état de préparation du groupe |
+| Hébergement | Grille des chambres de Makkah et Madinah, lits libres, affectation, export CSV et impression |
 | Catalogue | Saisons (avec quota de la tutelle) et forfaits |
 | Accès | Quatre rôles : propriétaire, gestionnaire, comptable, agent |
 
@@ -50,6 +51,9 @@ l'ordre :
 3. [`supabase/migrations/0003_inscription_guidee.sql`](supabase/migrations/0003_inscription_guidee.sql) —
    point d'embarquement sur le dossier, et bucket `documents` avec ses
    politiques (nécessaire au téléversement des pièces).
+4. [`supabase/migrations/0004_chambres.sql`](supabase/migrations/0004_chambres.sql) —
+   plan d'hébergement : table `chambres`, affectation par ville, garde-fous de
+   capacité et de mixité.
 
 Les deux sont nécessaires : sans la seconde, un tiers connaissant l'identifiant
 d'une agence peut faire avancer ses compteurs et créer des trous dans la
@@ -122,6 +126,10 @@ chemin dans le bucket `documents` doit être l'identifiant de l'agence.
 - **Pas encore de facturation de l'abonnement SaaS** ni de rôle de supervision
   nationale (tutelle) : le produit s'arrête à la frontière de l'agence.
 - Aucun envoi de SMS ou WhatsApp pour les relances d'échéance.
+- **Pas de connexion au portail du ministère saoudien.** Aucune interface
+  publique n'existe pour y déposer une liste depuis un logiciel tiers ; la
+  liste de rooming s'exporte en CSV et s'imprime, à transmettre par les voies
+  habituelles.
 
 ## Structure
 
