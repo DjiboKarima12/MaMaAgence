@@ -56,6 +56,8 @@ l'ordre :
    capacité et de mixité.
 5. [`supabase/migrations/0005_equipe_et_roles.sql`](supabase/migrations/0005_equipe_et_roles.sql) —
    codes d'invitation, et politiques RLS différenciées par rôle.
+6. [`supabase/migrations/0006_fermer_generateur_code.sql`](supabase/migrations/0006_fermer_generateur_code.sql) —
+   retire `code_invitation()` de l'API publique.
 
 Les deux sont nécessaires : sans la seconde, un tiers connaissant l'identifiant
 d'une agence peut faire avancer ses compteurs et créer des trous dans la
