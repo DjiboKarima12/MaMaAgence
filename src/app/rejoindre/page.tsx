@@ -19,8 +19,8 @@ export default function PageRejoindre() {
         Rejoindre mon agence
       </h1>
       <p className="mt-2 text-sm text-ardoise-500">
-        Votre agence vous a remis un code. Renseignez-le avec votre nom et votre téléphone :
-        votre espace s&apos;ouvre aussitôt. Pas besoin d&apos;adresse e-mail.
+        Votre agence a créé votre compte et vous a remis un code. Saisissez votre adresse
+        e-mail et ce code : votre espace s&apos;ouvre aussitôt, avec vos droits.
       </p>
 
       <div className="mt-6">

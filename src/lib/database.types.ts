@@ -217,6 +217,8 @@ export type Invitation = {
   code: string;
   role: UserRole;
   nom_prevu: string | null;
+  email: string | null;
+  telephone_prevu: string | null;
   cree_par: string | null;
   expire_le: string;
   utilise_le: string | null;
@@ -363,8 +365,18 @@ export type Database = {
       };
       agence_courante: { Args: Record<string, never>; Returns: string };
       creer_invitation: {
-        Args: { p_role: UserRole; p_nom_prevu?: string | null; p_jours?: number };
-        Returns: string;
+        Args: {
+          p_role: UserRole;
+          p_nom_prevu?: string | null;
+          p_jours?: number;
+          p_email?: string | null;
+          p_telephone?: string | null;
+        };
+        Returns: Invitation;
+      };
+      marquer_invitation_utilisee: {
+        Args: { p_invitation: string; p_utilisateur: string };
+        Returns: undefined;
       };
       rejoindre_agence: {
         Args: { p_code: string; p_nom_complet: string; p_telephone?: string | null };

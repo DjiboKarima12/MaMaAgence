@@ -58,6 +58,9 @@ l'ordre :
    codes d'invitation, et politiques RLS différenciées par rôle.
 6. [`supabase/migrations/0006_fermer_generateur_code.sql`](supabase/migrations/0006_fermer_generateur_code.sql) —
    retire `code_invitation()` de l'API publique.
+7. [`supabase/migrations/0007_invitation_avec_compte.sql`](supabase/migrations/0007_invitation_avec_compte.sql) —
+   e-mail et téléphone sur l'invitation, pour que le propriétaire crée
+   directement le compte du collaborateur.
 
 Les deux sont nécessaires : sans la seconde, un tiers connaissant l'identifiant
 d'une agence peut faire avancer ses compteurs et créer des trous dans la
@@ -90,11 +93,18 @@ propriétaire.
 ### Deux façons d'entrer
 
 - **Le responsable** crée son compte avec une adresse e-mail, puis ouvre l'agence.
-- **Un collaborateur** reçoit un code, ouvre `/rejoindre`, saisit code, nom,
-  téléphone et mot de passe. Aucune adresse e-mail : le numéro devient son
-  identifiant de connexion, traduit en interne en adresse technique par
-  [`src/lib/identifiant.ts`](src/lib/identifiant.ts). Cela évite de dépendre
-  d'un fournisseur SMS pour l'authentification par téléphone.
+- **Un collaborateur** ne s'inscrit pas : le propriétaire saisit son nom, son
+  e-mail et son téléphone dans **Paramètres → Ajouter un collaborateur**. Le
+  compte est créé aussitôt avec le rôle choisi, et un code est remis. La
+  personne ouvre `/rejoindre`, saisit son e-mail et le code, et son espace
+  s'ouvre. Le code tient lieu de mot de passe d'entrée : elle en choisit un
+  autre depuis ses paramètres.
+
+> Créer un compte au nom d'autrui exige la clé de service : renseignez
+> `SUPABASE_SERVICE_ROLE_KEY` dans `.env.local`. Sans elle, le formulaire
+> d'ajout le signale explicitement. Cette clé ignore la RLS et ne doit jamais
+> atteindre le navigateur — elle n'est lue que par
+> [`src/lib/supabase/admin.ts`](src/lib/supabase/admin.ts), côté serveur.
 
 ## Isolation des données
 

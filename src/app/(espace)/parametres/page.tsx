@@ -7,6 +7,7 @@ import { libelleRole } from "@/lib/roles";
 import { identifiantLisible } from "@/lib/identifiant";
 import { FormulaireAgence, LigneEquipe } from "./formulaires";
 import { PanneauInvitations } from "./invitations";
+import { FormulaireMotDePasse } from "./mot-de-passe";
 import type { Invitation, Profil } from "@/lib/database.types";
 
 export const metadata: Metadata = { title: "Paramètres" };
@@ -74,6 +75,10 @@ export default async function PageParametres() {
                 </div>
               ))}
             </dl>
+          </Carte>
+
+          <Carte titre="Mot de passe">
+            <FormulaireMotDePasse />
           </Carte>
 
           <Carte titre="Sécurité des données">
