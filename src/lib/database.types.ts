@@ -157,6 +157,7 @@ export type Dossier = {
   remise_xof: number;
   type_chambre: string | null;
   numero_chambre: string | null;
+  aeroport_prefere: string | null;
   inscrit_le: string;
   annule_le: string | null;
   motif_annulation: string | null;

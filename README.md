@@ -10,7 +10,8 @@ justificatives et ses encaissements en francs CFA.
 | --- | --- |
 | Pèlerins | État civil, NIN, passeport, contact d'urgence, mahram, antécédents médicaux |
 | Dossiers | Référence auto, forfait figé à l'inscription, remise, statut du parcours jusqu'au retour |
-| Pièces | Check-list des pièces obligatoires créée à l'ouverture du dossier, validation et dates d'expiration |
+| Pièces | Check-list créée à l'ouverture du dossier, téléversement par glisser-déposer ou appareil photo, validation et dates d'expiration |
+| Inscription | Parcours guidé en trois étapes — identité, pièces et santé, premier versement — avec lecture de la bande MRZ du passeport |
 | Paiements | Échéancier, encaissement multi-moyens, reçu numéroté et imprimable, montant en toutes lettres |
 | Groupes | Manifeste de départ, vol, encadrant, état de préparation du groupe |
 | Catalogue | Saisons (avec quota de la tutelle) et forfaits |
@@ -46,6 +47,9 @@ l'ordre :
 2. [`supabase/migrations/0002_durcir_numerotation.sql`](supabase/migrations/0002_durcir_numerotation.sql) —
    retire l'accès public à `prochain_numero()`, qui écrit dans les compteurs en
    contournant la RLS et restait appelable par n'importe quel visiteur.
+3. [`supabase/migrations/0003_inscription_guidee.sql`](supabase/migrations/0003_inscription_guidee.sql) —
+   point d'embarquement sur le dossier, et bucket `documents` avec ses
+   politiques (nécessaire au téléversement des pièces).
 
 Les deux sont nécessaires : sans la seconde, un tiers connaissant l'identifiant
 d'une agence peut faire avancer ses compteurs et créer des trous dans la
@@ -109,10 +113,9 @@ chemin dans le bucket `documents` doit être l'identifiant de l'agence.
 - **Un pèlerin ne peut avoir qu'un dossier par saison**, y compris si le premier
   a été annulé. Pour réinscrire quelqu'un après annulation, il faut aujourd'hui
   rouvrir le dossier existant plutôt qu'en créer un second.
-- **L'envoi des pièces jointes n'est pas branché** : le bucket, les politiques et
-  la colonne `chemin_fichier` existent, mais l'interface ne fait que suivre le
-  statut des pièces (manquante, fournie, validée). Le téléversement est la
-  première brique à ajouter.
+- **Pas de reconnaissance optique du passeport.** Le parcours d'inscription lit
+  la bande MRZ *collée ou saisie* par l'agent et vérifie ses clés de contrôle,
+  mais ne déchiffre pas une photo. Brancher un moteur OCR reste à faire.
 - **L'invitation de collaborateurs passe par la console Supabase.** Créez
   l'utilisateur dans Authentication → Users, puis insérez sa ligne dans `profils`
   avec l'`agence_id` correspondant.

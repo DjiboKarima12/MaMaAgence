@@ -64,7 +64,14 @@ export default async function PagePelerins({
       <EnTetePage
         titre="Pèlerins"
         description={`${total} fiche${total > 1 ? "s" : ""} enregistrée${total > 1 ? "s" : ""}`}
-        action={<LienBouton href="/pelerins/nouveau">Nouveau pèlerin</LienBouton>}
+        action={
+          <div className="flex gap-2">
+            <LienBouton href="/pelerins/nouveau" variante="secondaire">
+              Fiche simple
+            </LienBouton>
+            <LienBouton href="/pelerins/inscription">Inscrire un pèlerin</LienBouton>
+          </div>
+        }
       />
 
       <Carte>
@@ -131,7 +138,7 @@ export default async function PagePelerins({
             }
             action={
               !q && !region ? (
-                <LienBouton href="/pelerins/nouveau">Nouveau pèlerin</LienBouton>
+                <LienBouton href="/pelerins/inscription">Inscrire un pèlerin</LienBouton>
               ) : undefined
             }
           />

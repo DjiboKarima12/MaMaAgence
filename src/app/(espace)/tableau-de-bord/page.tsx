@@ -173,7 +173,7 @@ export default async function PageTableauDeBord({
           <ol className="mt-3 grid gap-2 sm:grid-cols-3">
             {[
               { n: 1, titre: "Saison et forfaits", href: "/catalogue" },
-              { n: 2, titre: "Pèlerins", href: "/pelerins/nouveau" },
+              { n: 2, titre: "Pèlerins", href: "/pelerins/inscription" },
               { n: 3, titre: "Dossiers d'inscription", href: "/dossiers/nouveau" },
             ].map((e) => (
               <li key={e.n}>
@@ -536,7 +536,7 @@ export default async function PageTableauDeBord({
 
       {/* Action principale, toujours accessible */}
       <Link
-        href="/pelerins/nouveau"
+        href="/pelerins/inscription"
         className="sans-impression fixed bottom-6 right-6 z-20 inline-flex items-center gap-2 rounded-full bg-marque-700 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-marque-900/20 transition-colors hover:bg-marque-800"
       >
         <UserPlusIcon className="h-4 w-4" aria-hidden />

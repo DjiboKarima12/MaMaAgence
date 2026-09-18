@@ -15,6 +15,21 @@ export const REGIONS_NIGER = [
 
 export type RegionNiger = (typeof REGIONS_NIGER)[number];
 
+/** Points d'embarquement possibles, par code AITA. */
+export const AEROPORTS_NIGER = [
+  { code: "NIM", ville: "Niamey", nom: "Diori Hamani" },
+  { code: "ZND", ville: "Zinder", nom: "Zinder" },
+  { code: "AJY", ville: "Agadez", nom: "Mano Dayak" },
+  { code: "MFQ", ville: "Maradi", nom: "Maradi" },
+  { code: "THZ", ville: "Tahoua", nom: "Tahoua" },
+] as const;
+
+export function libelleAeroport(code: string | null | undefined): string {
+  if (!code) return "—";
+  const a = AEROPORTS_NIGER.find((x) => x.code === code);
+  return a ? `${a.ville} (${a.code})` : code;
+}
+
 /** Moyens de paiement, libellés et couleur d'affichage. */
 export const MOYENS_PAIEMENT = {
   especes: { label: "Espèces", court: "Espèces", besoinReference: false },
