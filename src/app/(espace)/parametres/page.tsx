@@ -5,7 +5,8 @@ import { Carte, EnTetePage } from "@/components/ui";
 import { dateCourte } from "@/lib/format";
 import { libelleRole } from "@/lib/roles";
 import { FormulaireAgence, LigneEquipe } from "./formulaires";
-import type { Profil } from "@/lib/database.types";
+import { PanneauInvitations } from "./invitations";
+import type { Invitation, Profil } from "@/lib/database.types";
 
 export const metadata: Metadata = { title: "Paramètres" };
 
@@ -13,9 +14,17 @@ export default async function PageParametres() {
   const session = await exigerSession();
   const supabase = await creerClientServeur();
 
-  const { data } = await supabase.from("profils").select("*").order("cree_le");
-  const equipe = (data ?? []) as Profil[];
   const proprietaire = peut(session, "proprietaire");
+
+  const [{ data }, { data: invitationsBrutes }] = await Promise.all([
+    supabase.from("profils").select("*").order("cree_le"),
+    proprietaire
+      ? supabase.from("invitations").select("*").order("cree_le", { ascending: false })
+      : Promise.resolve({ data: [] }),
+  ]);
+
+  const equipe = (data ?? []) as Profil[];
+  const invitations = (invitationsBrutes ?? []) as Invitation[];
 
   return (
     <>
@@ -41,11 +50,11 @@ export default async function PageParametres() {
                 />
               ))}
             </ul>
-            <p className="border-t border-ardoise-200 px-5 py-3 text-xs text-ardoise-500">
-              Pour ajouter un collaborateur, invitez-le depuis la console Supabase
-              (Authentication → Users), puis créez son profil. Une page d&apos;invitation intégrée
-              est prévue dans une prochaine version.
-            </p>
+
+          </Carte>
+
+          <Carte titre="Inviter un collaborateur" className="mt-4">
+            <PanneauInvitations invitations={invitations} proprietaire={proprietaire} />
           </Carte>
         </div>
 

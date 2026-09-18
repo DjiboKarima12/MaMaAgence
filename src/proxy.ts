@@ -1,7 +1,13 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 
-const ROUTES_PUBLIQUES = ["/connexion", "/inscription", "/auth"];
+const ROUTES_PUBLIQUES = [
+  "/connexion",
+  "/inscription",
+  "/auth",
+  "/mot-de-passe-oublie",
+  "/nouveau-mot-de-passe",
+];
 
 export async function proxy(request: NextRequest) {
   let response = NextResponse.next({ request });

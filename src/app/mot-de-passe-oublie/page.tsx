@@ -1,13 +1,12 @@
 import Link from "next/link";
 import type { Metadata } from "next";
-import FormulaireInscription from "./formulaire";
-import { AlerteConfiguration } from "@/components/alerte-configuration";
+import FormulaireOubli from "./formulaire";
 
-export const metadata: Metadata = { title: "Créer un espace agence" };
+export const metadata: Metadata = { title: "Mot de passe oublié" };
 
-export default function PageInscription() {
+export default function PageOubli() {
   return (
-    <main className="mx-auto flex min-h-screen w-full max-w-lg flex-col justify-center px-6 py-12">
+    <main className="mx-auto flex min-h-screen w-full max-w-sm flex-col justify-center px-6 py-12">
       <Link href="/connexion" className="flex items-center gap-2.5">
         <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-marque-600 text-sm font-bold text-white">
           MA
@@ -16,25 +15,19 @@ export default function PageInscription() {
       </Link>
 
       <h1 className="mt-10 text-2xl font-semibold tracking-tight text-ardoise-950">
-        Créer votre compte
+        Mot de passe oublié
       </h1>
       <p className="mt-2 text-sm text-ardoise-500">
-        Créez votre compte. À l&apos;étape suivante, vous ouvrirez votre agence — ou vous la
-        rejoindrez avec le code d&apos;invitation qu&apos;un collègue vous a transmis.
+        Indiquez votre adresse e-mail : vous recevrez un lien pour en choisir un nouveau.
       </p>
 
-      <div className="mt-6">
-        <AlerteConfiguration />
-      </div>
-
-      <div className="mt-6">
-        <FormulaireInscription />
+      <div className="mt-8">
+        <FormulaireOubli />
       </div>
 
       <p className="mt-8 text-sm text-ardoise-500">
-        Vous avez déjà un compte ?{" "}
         <Link href="/connexion" className="font-medium text-marque-700 hover:text-marque-800">
-          Se connecter
+          Revenir à la connexion
         </Link>
       </p>
     </main>

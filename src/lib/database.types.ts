@@ -211,6 +211,19 @@ export type Paiement = {
   cree_le: string;
 }
 
+export type Invitation = {
+  id: string;
+  agence_id: string;
+  code: string;
+  role: UserRole;
+  nom_prevu: string | null;
+  cree_par: string | null;
+  expire_le: string;
+  utilise_le: string | null;
+  utilise_par: string | null;
+  cree_le: string;
+};
+
 export type Chambre = {
   id: string;
   agence_id: string;
@@ -326,6 +339,7 @@ export type Database = {
         Chambre,
         [VersUn<"agence_id", "agences">, VersUn<"groupe_id", "groupes">]
       >;
+      invitations: Table<Invitation, [VersUn<"agence_id", "agences">]>;
     };
     Views: {
       v_dossiers_finance: {
@@ -348,6 +362,14 @@ export type Database = {
         Returns: string;
       };
       agence_courante: { Args: Record<string, never>; Returns: string };
+      creer_invitation: {
+        Args: { p_role: UserRole; p_nom_prevu?: string | null; p_jours?: number };
+        Returns: string;
+      };
+      rejoindre_agence: {
+        Args: { p_code: string; p_nom_complet: string; p_telephone?: string | null };
+        Returns: string;
+      };
       creer_chambres_en_serie: {
         Args: {
           p_groupe: string;

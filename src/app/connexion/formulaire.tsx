@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { creerClientNavigateur } from "@/lib/supabase/client";
 import { Bouton, Champ, Erreur, Saisie } from "@/components/ui";
@@ -56,6 +57,15 @@ export default function FormulaireConnexion() {
           placeholder="••••••••"
         />
       </Champ>
+
+      <div className="text-right">
+        <Link
+          href="/mot-de-passe-oublie"
+          className="text-sm font-medium text-marque-700 hover:text-marque-800"
+        >
+          Mot de passe oublié ?
+        </Link>
+      </div>
 
       <Bouton type="submit" disabled={enCours} className="w-full">
         {enCours ? "Connexion…" : "Se connecter"}

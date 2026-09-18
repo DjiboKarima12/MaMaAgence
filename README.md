@@ -54,6 +54,8 @@ l'ordre :
 4. [`supabase/migrations/0004_chambres.sql`](supabase/migrations/0004_chambres.sql) —
    plan d'hébergement : table `chambres`, affectation par ville, garde-fous de
    capacité et de mixité.
+5. [`supabase/migrations/0005_equipe_et_roles.sql`](supabase/migrations/0005_equipe_et_roles.sql) —
+   codes d'invitation, et politiques RLS différenciées par rôle.
 
 Les deux sont nécessaires : sans la seconde, un tiers connaissant l'identifiant
 d'une agence peut faire avancer ses compteurs et créer des trous dans la
@@ -95,7 +97,8 @@ create policy pelerins_tenant on pelerins for all
 
 `agence_courante()` lit l'agence du profil rattaché à `auth.uid()`. Une requête
 mal filtrée côté application ne peut donc pas faire fuiter les données d'une
-autre agence. Les pièces jointes suivent la même règle : le premier segment du
+autre agence. Les droits d'écriture suivent le rôle : un agent saisit mais ne
+supprime pas, un comptable encaisse mais ne touche pas au catalogue. Les pièces jointes suivent la même règle : le premier segment du
 chemin dans le bucket `documents` doit être l'identifiant de l'agence.
 
 ## Règles métier notables
@@ -120,9 +123,10 @@ chemin dans le bucket `documents` doit être l'identifiant de l'agence.
 - **Pas de reconnaissance optique du passeport.** Le parcours d'inscription lit
   la bande MRZ *collée ou saisie* par l'agent et vérifie ses clés de contrôle,
   mais ne déchiffre pas une photo. Brancher un moteur OCR reste à faire.
-- **L'invitation de collaborateurs passe par la console Supabase.** Créez
-  l'utilisateur dans Authentication → Users, puis insérez sa ligne dans `profils`
-  avec l'`agence_id` correspondant.
+- **Les écrans ne masquent pas encore les actions interdites** : un agent voit
+  le bouton « Supprimer », et reçoit un refus explicite s'il l'actionne. La
+  règle est appliquée côté base, ce qui garantit la sécurité, mais l'interface
+  gagnerait à s'adapter au rôle.
 - **Pas encore de facturation de l'abonnement SaaS** ni de rôle de supervision
   nationale (tutelle) : le produit s'arrête à la frontière de l'agence.
 - Aucun envoi de SMS ou WhatsApp pour les relances d'échéance.
