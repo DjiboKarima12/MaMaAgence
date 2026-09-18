@@ -4,6 +4,7 @@ import { creerClientServeur } from "@/lib/supabase/server";
 import { Carte, EnTetePage } from "@/components/ui";
 import { dateCourte } from "@/lib/format";
 import { libelleRole } from "@/lib/roles";
+import { identifiantLisible } from "@/lib/identifiant";
 import { FormulaireAgence, LigneEquipe } from "./formulaires";
 import { PanneauInvitations } from "./invitations";
 import type { Invitation, Profil } from "@/lib/database.types";
@@ -63,7 +64,7 @@ export default async function PageParametres() {
             <dl className="divide-y divide-ardoise-100 text-sm">
               {[
                 ["Nom", session.profil.nom_complet],
-                ["E-mail", session.email],
+                ["Identifiant", identifiantLisible(session.email)],
                 ["Rôle", libelleRole(session.profil.role)],
                 ["Membre depuis", dateCourte(session.profil.cree_le)],
               ].map(([k, v]) => (

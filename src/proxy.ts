@@ -5,6 +5,7 @@ const ROUTES_PUBLIQUES = [
   "/connexion",
   "/inscription",
   "/auth",
+  "/rejoindre",
   "/mot-de-passe-oublie",
   "/nouveau-mot-de-passe",
 ];

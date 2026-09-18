@@ -50,7 +50,9 @@ export function PanneauInvitations({
         <div className="border-b border-ardoise-200 bg-marque-50 px-5 py-4">
           <p className="text-sm font-medium text-marque-900">Code créé</p>
           <p className="mt-1 text-sm text-marque-800">
-            Transmettez-le à votre collaborateur. Il créera son compte puis saisira ce code.
+            Transmettez-le par SMS ou de vive voix. Votre collaborateur ouvre la page
+            <span className="font-medium"> /rejoindre</span>, saisit ce code, son nom et son
+            téléphone — et son espace s&apos;ouvre. Aucune adresse e-mail n&apos;est demandée.
           </p>
           <div className="mt-3 flex flex-wrap items-center gap-3">
             <code className="tabular rounded-lg bg-white px-4 py-2.5 text-xl font-bold tracking-[0.2em] text-ardoise-950 ring-1 ring-inset ring-marque-300">

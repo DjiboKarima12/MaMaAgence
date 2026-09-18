@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { creerClientNavigateur } from "@/lib/supabase/client";
 import { Bouton, Champ, Erreur, Saisie } from "@/components/ui";
 import { messageErreurAuth } from "@/lib/supabase/config";
+import { identifiantVersEmail } from "@/lib/identifiant";
 
 export default function FormulaireConnexion() {
   const router = useRouter();
@@ -17,9 +18,18 @@ export default function FormulaireConnexion() {
     setErreur(null);
     setEnCours(true);
 
+    // Un numéro de téléphone est traduit en adresse technique : les agents
+    // se connectent avec leur numéro, les propriétaires avec leur e-mail.
+    const email = identifiantVersEmail(String(formData.get("identifiant") ?? ""));
+    if (!email) {
+      setErreur("Saisissez votre adresse e-mail, ou vos huit chiffres de téléphone.");
+      setEnCours(false);
+      return;
+    }
+
     const supabase = creerClientNavigateur();
     const { error } = await supabase.auth.signInWithPassword({
-      email: String(formData.get("email") ?? "").trim(),
+      email,
       password: String(formData.get("motDePasse") ?? ""),
     });
 
@@ -38,13 +48,16 @@ export default function FormulaireConnexion() {
     <form action={envoyer} className="space-y-4">
       <Erreur>{erreur}</Erreur>
 
-      <Champ label="Adresse e-mail" requis>
+      <Champ label="Téléphone ou adresse e-mail" requis>
         <Saisie
-          name="email"
-          type="email"
-          autoComplete="email"
+          name="identifiant"
+          type="text"
+          inputMode="email"
+          autoComplete="username"
+          autoCapitalize="none"
+          spellCheck={false}
           required
-          placeholder="vous@agence.ne"
+          placeholder="96 45 12 78"
         />
       </Champ>
 

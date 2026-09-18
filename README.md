@@ -82,10 +82,19 @@ npm run dev
 Ouvrez <http://localhost:3000/inscription> pour créer votre agence et le compte
 propriétaire.
 
-> Si la confirmation d'e-mail est activée dans Supabase (Authentication →
-> Providers → Email), le compte est créé mais l'agence ne l'est qu'à la première
-> connexion, via la page `/bienvenue`. Pour des tests rapides, désactivez
-> « Confirm email ».
+> **Décochez « Confirm email »** dans Supabase (Authentication → Sign In /
+> Providers → Email). L'entrée par code d'un collaborateur suppose une création
+> de compte immédiate : avec la confirmation activée, le parcours s'interrompt
+> sur un message explicite.
+
+### Deux façons d'entrer
+
+- **Le responsable** crée son compte avec une adresse e-mail, puis ouvre l'agence.
+- **Un collaborateur** reçoit un code, ouvre `/rejoindre`, saisit code, nom,
+  téléphone et mot de passe. Aucune adresse e-mail : le numéro devient son
+  identifiant de connexion, traduit en interne en adresse technique par
+  [`src/lib/identifiant.ts`](src/lib/identifiant.ts). Cela évite de dépendre
+  d'un fournisseur SMS pour l'authentification par téléphone.
 
 ## Isolation des données
 

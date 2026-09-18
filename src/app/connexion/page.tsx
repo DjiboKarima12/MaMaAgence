@@ -35,12 +35,31 @@ export default function PageConnexion() {
             </Suspense>
           </div>
 
-          <p className="mt-8 text-sm text-ardoise-500">
-            Votre agence n&apos;a pas encore de compte ?{" "}
-            <Link href="/inscription" className="font-medium text-marque-700 hover:text-marque-800">
-              Créer un espace agence
+          <div className="mt-8 space-y-3 border-t border-ardoise-200 pt-6">
+            <Link
+              href="/rejoindre"
+              className="flex items-center justify-between gap-3 rounded-lg bg-marque-50 px-4 py-3 ring-1 ring-inset ring-marque-200 transition-colors hover:ring-marque-400"
+            >
+              <span>
+                <span className="block text-sm font-medium text-marque-900">
+                  J&apos;ai reçu un code d&apos;invitation
+                </span>
+                <span className="block text-xs text-marque-700">
+                  Votre nom, votre téléphone, et vous entrez
+                </span>
+              </span>
+              <span className="text-marque-700" aria-hidden>
+                →
+              </span>
             </Link>
-          </p>
+
+            <p className="text-sm text-ardoise-500">
+              Votre agence n&apos;a pas encore d&apos;espace ?{" "}
+              <Link href="/inscription" className="font-medium text-marque-700 hover:text-marque-800">
+                En créer un
+              </Link>
+            </p>
+          </div>
         </div>
       </div>
 
