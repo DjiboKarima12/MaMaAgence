@@ -140,8 +140,11 @@ export default async function PageTableauDeBord({
       */}
       <div className="relative mb-6 overflow-hidden rounded-xl bg-marque-900">
         <div
-          className="absolute inset-0 bg-cover bg-center"
-          style={{ backgroundImage: "url('/tableau-de-bord.jpg')" }}
+          className="absolute inset-0 bg-cover"
+          style={{
+            backgroundImage: "url('/tableau-de-bord.jpg')",
+            backgroundPosition: "center 38%",
+          }}
           aria-hidden
         />
         <div
