@@ -74,11 +74,12 @@ export default function PageConnexion() {
           aria-hidden
         />
         {/*
-          Voile foncé : sans lui, le texte blanc devient illisible dès que la
-          photo comporte des zones claires — un ciel, un éclairage de nuit.
+          Voile dégradé : dense en bas, où se trouve le texte, léger en haut
+          pour laisser voir la photo. Sans lui, le texte blanc disparaîtrait
+          sur un ciel clair.
         */}
         <div
-          className="absolute inset-0 bg-gradient-to-br from-marque-950/95 via-marque-900/85 to-marque-900/70"
+          className="absolute inset-0 bg-gradient-to-t from-marque-950/95 via-marque-900/80 to-marque-900/40"
           aria-hidden
         />
 
