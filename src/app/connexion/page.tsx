@@ -63,8 +63,26 @@ export default function PageConnexion() {
         </div>
       </div>
 
-      <aside className="relative hidden bg-marque-900 lg:block lg:w-[54%]">
-        <div className="flex h-full flex-col justify-between p-16 text-marque-50">
+      <aside className="relative hidden overflow-hidden bg-marque-900 lg:block lg:w-[54%]">
+        {/*
+          Photo de fond. Déposez votre image dans public/accueil.jpg : si le
+          fichier est absent, le vert de la marque reste seul, sans rien casser.
+        */}
+        <div
+          className="absolute inset-0 bg-cover bg-center"
+          style={{ backgroundImage: "url('/accueil.jpg')" }}
+          aria-hidden
+        />
+        {/*
+          Voile foncé : sans lui, le texte blanc devient illisible dès que la
+          photo comporte des zones claires — un ciel, un éclairage de nuit.
+        */}
+        <div
+          className="absolute inset-0 bg-gradient-to-br from-marque-950/95 via-marque-900/85 to-marque-900/70"
+          aria-hidden
+        />
+
+        <div className="relative flex h-full flex-col justify-between p-16 text-marque-50">
           <div />
           <div className="max-w-md">
             <p className="text-3xl font-semibold leading-snug tracking-tight text-white">
