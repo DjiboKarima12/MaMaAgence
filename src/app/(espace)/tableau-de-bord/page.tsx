@@ -134,31 +134,51 @@ export default async function PageTableauDeBord({
 
   return (
     <>
-      {/* En-tête : campagne affichée et recherche globale */}
-      <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
-        <div className="flex flex-wrap items-center gap-3">
-          <h1 className="text-2xl font-semibold tracking-tight text-ardoise-950">
-            Espace agence
-          </h1>
-          <SelecteurSaison
-            saisons={saisons.map((s) => ({ id: s.id, libelle: s.libelle, type: s.type }))}
-            saisonActive={saisonActive}
-          />
-        </div>
+      {/*
+        Bandeau d'accueil. La photo vit dans public/tableau-de-bord.jpg ; si le
+        fichier manque, le dégradé vert reste seul et rien ne casse.
+      */}
+      <div className="relative mb-6 overflow-hidden rounded-xl bg-marque-900">
+        <div
+          className="absolute inset-0 bg-cover bg-center"
+          style={{ backgroundImage: "url('/tableau-de-bord.jpg')" }}
+          aria-hidden
+        />
+        <div
+          className="absolute inset-0 bg-gradient-to-r from-marque-950/95 via-marque-900/80 to-marque-900/45"
+          aria-hidden
+        />
 
-        <form action="/pelerins" className="relative">
-          <SearchIcon
-            className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ardoise-400"
-            aria-hidden
-          />
-          <input
-            type="search"
-            name="q"
-            placeholder="Rechercher un pèlerin, un passeport…"
-            aria-label="Rechercher un pèlerin"
-            className="w-72 rounded-lg border-0 bg-white py-2 pl-9 pr-3 text-sm ring-1 ring-inset ring-ardoise-300 placeholder:text-ardoise-400 focus:ring-2 focus:ring-inset focus:ring-marque-500"
-          />
-        </form>
+        <div className="relative flex flex-wrap items-center justify-between gap-4 px-6 py-7">
+          <div className="flex flex-wrap items-center gap-3">
+            <div>
+              <h1 className="text-2xl font-semibold tracking-tight text-white">
+                {session.agence.nom}
+              </h1>
+              <p className="mt-0.5 text-sm text-marque-200">
+                {saison ? saison.libelle : "Toutes les campagnes"}
+              </p>
+            </div>
+            <SelecteurSaison
+              saisons={saisons.map((s) => ({ id: s.id, libelle: s.libelle, type: s.type }))}
+              saisonActive={saisonActive}
+            />
+          </div>
+
+          <form action="/pelerins" className="relative">
+            <SearchIcon
+              className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ardoise-400"
+              aria-hidden
+            />
+            <input
+              type="search"
+              name="q"
+              placeholder="Rechercher un pèlerin, un passeport…"
+              aria-label="Rechercher un pèlerin"
+              className="w-72 rounded-lg border-0 bg-white/95 py-2 pl-9 pr-3 text-sm text-ardoise-900 shadow-sm placeholder:text-ardoise-400 focus:bg-white focus:ring-2 focus:ring-inset focus:ring-marque-500"
+            />
+          </form>
+        </div>
       </div>
 
       {espaceVide && (
