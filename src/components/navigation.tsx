@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
+import { Logo } from "@/components/logo";
 import { libelleRole } from "@/lib/roles";
 import type { UserRole } from "@/lib/database.types";
 import {
@@ -45,9 +46,7 @@ export function Navigation({
   const contenu = (
     <div className="flex h-full flex-col">
       <div className="flex items-center gap-2.5 px-5 py-5">
-        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-marque-600 text-sm font-bold text-white">
-          MA
-        </span>
+        <Logo />
         <div className="min-w-0">
           <p className="truncate text-sm font-semibold text-white">{nomAgence}</p>
           <p className="text-xs text-marque-300">MaMaAgence</p>

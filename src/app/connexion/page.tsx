@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Logo } from "@/components/logo";
 import { Suspense } from "react";
 import type { Metadata } from "next";
 import FormulaireConnexion from "./formulaire";
@@ -12,9 +13,7 @@ export default function PageConnexion() {
       <div className="flex w-full flex-col justify-center px-6 py-12 lg:w-[46%] lg:px-16">
         <div className="mx-auto w-full max-w-sm">
           <Link href="/" className="flex items-center gap-2.5">
-            <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-marque-600 text-sm font-bold text-white">
-              MA
-            </span>
+            <Logo />
             <span className="text-lg font-semibold tracking-tight text-ardoise-950">MaMaAgence</span>
           </Link>
 
