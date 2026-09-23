@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
-import { exigerSession } from "@/lib/session";
+import { exigerAcces } from "@/lib/session";
 import { creerClientServeur } from "@/lib/supabase/server";
 import {
   Badge,
@@ -29,7 +29,7 @@ function Ligne({ libelle, valeur }: { libelle: string; valeur: React.ReactNode }
 }
 
 export default async function PageFichePelerin({ params }: { params: Promise<{ id: string }> }) {
-  await exigerSession();
+  await exigerAcces("pelerins");
   const { id } = await params;
   const supabase = await creerClientServeur();
 

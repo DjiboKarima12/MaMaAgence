@@ -122,6 +122,20 @@ autre agence. Les droits d'écriture suivent le rôle : un agent saisit mais ne
 supprime pas, un comptable encaisse mais ne touche pas au catalogue. Les pièces jointes suivent la même règle : le premier segment du
 chemin dans le bucket `documents` doit être l'identifiant de l'agence.
 
+## Qui voit quoi
+
+[`src/lib/acces.ts`](src/lib/acces.ts) décide des sections ouvertes à chaque
+rôle et des actions permises. Le menu ne montre que les sections accessibles,
+et chaque page est gardée côté serveur par `exigerAcces()` : taper l'adresse
+d'une section fermée mène à un écran qui explique le refus.
+
+| Rôle | Sections | Peut |
+| --- | --- | --- |
+| Agent | Tableau de bord, Pèlerins, Dossiers | saisir, sans supprimer ni encaisser |
+| Comptable | Tableau de bord, Dossiers, Paiements | encaisser, consulter |
+| Gestionnaire | tout le métier | saisir, supprimer, encaisser, gérer le catalogue |
+| Propriétaire | tout | en plus, l'agence et l'équipe |
+
 ## Règles métier notables
 
 - **Le prix ne vient jamais du formulaire.** À la création d'un dossier, il est
@@ -144,10 +158,11 @@ chemin dans le bucket `documents` doit être l'identifiant de l'agence.
 - **Pas de reconnaissance optique du passeport.** Le parcours d'inscription lit
   la bande MRZ *collée ou saisie* par l'agent et vérifie ses clés de contrôle,
   mais ne déchiffre pas une photo. Brancher un moteur OCR reste à faire.
-- **Les écrans ne masquent pas encore les actions interdites** : un agent voit
-  le bouton « Supprimer », et reçoit un refus explicite s'il l'actionne. La
-  règle est appliquée côté base, ce qui garantit la sécurité, mais l'interface
-  gagnerait à s'adapter au rôle.
+- **La séparation des rôles s'arrête à l'application.** Les sections fermées
+  sont invisibles dans le menu et refusées à l'ouverture, mais les données
+  restent lisibles par tout membre de l'agence au niveau de la base : un
+  collaborateur qui interrogerait l'API directement avec son jeton verrait le
+  journal des paiements. Fermer aussi la lecture en RLS reste à faire.
 - **Pas encore de facturation de l'abonnement SaaS** ni de rôle de supervision
   nationale (tutelle) : le produit s'arrête à la frontière de l'agence.
 - Aucun envoi de SMS ou WhatsApp pour les relances d'échéance.

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { Metadata } from "next";
-import { exigerSession } from "@/lib/session";
+import { exigerAcces } from "@/lib/session";
 import { creerClientServeur } from "@/lib/supabase/server";
 import {
   Badge,
@@ -25,7 +25,7 @@ export default async function PageDossiers({
 }: {
   searchParams: Promise<{ statut?: string; saison?: string; solde?: string; q?: string }>;
 }) {
-  await exigerSession();
+  const { droits } = await exigerAcces("dossiers");
   const { statut = "", saison = "", solde = "", q = "" } = await searchParams;
 
   const supabase = await creerClientServeur();
@@ -67,7 +67,11 @@ export default async function PageDossiers({
       <EnTetePage
         titre="Dossiers"
         description="Chaque dossier lie un pèlerin à un forfait, avec ses pièces et son échéancier."
-        action={<LienBouton href="/dossiers/nouveau">Nouveau dossier</LienBouton>}
+        action={
+          droits.saisir ? (
+            <LienBouton href="/dossiers/nouveau">Nouveau dossier</LienBouton>
+          ) : undefined
+        }
       />
 
       <div className="mb-4 grid gap-4 sm:grid-cols-3">
@@ -148,7 +152,11 @@ export default async function PageDossiers({
           <EtatVide
             titre="Aucun dossier"
             description="Créez un dossier pour inscrire un pèlerin à un forfait de la saison."
-            action={<LienBouton href="/dossiers/nouveau">Nouveau dossier</LienBouton>}
+            action={
+          droits.saisir ? (
+            <LienBouton href="/dossiers/nouveau">Nouveau dossier</LienBouton>
+          ) : undefined
+        }
           />
         ) : (
           <Tableau>

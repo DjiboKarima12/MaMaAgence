@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { exigerSession } from "@/lib/session";
+import { exigerAcces } from "@/lib/session";
 import { creerClientServeur } from "@/lib/supabase/server";
 import { Carte, EnTetePage, EtatVide, LienBouton } from "@/components/ui";
 import { MatriceChambres, type OccupantBrut } from "@/components/matrice-chambres";
@@ -12,7 +12,7 @@ export default async function PageLogistique({
 }: {
   searchParams: Promise<{ groupe?: string; ville?: string; etage?: string; capacite?: string }>;
 }) {
-  await exigerSession();
+  await exigerAcces("logistique");
   const params = await searchParams;
   const supabase = await creerClientServeur();
 

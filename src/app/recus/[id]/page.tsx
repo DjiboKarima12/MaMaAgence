@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
-import { exigerSession } from "@/lib/session";
+import { exigerAcces } from "@/lib/session";
 import { creerClientServeur } from "@/lib/supabase/server";
 import { MOYENS_PAIEMENT } from "@/lib/niger";
 import { dateLongue, enLettres, telephone, xof } from "@/lib/format";
@@ -20,7 +20,7 @@ type PaiementComplet = Paiement & {
 };
 
 export default async function PageRecu({ params }: { params: Promise<{ id: string }> }) {
-  const session = await exigerSession();
+  const session = await exigerAcces("dossiers");
   const { id } = await params;
   const supabase = await creerClientServeur();
 

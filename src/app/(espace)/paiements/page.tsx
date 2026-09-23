@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { Metadata } from "next";
-import { exigerSession } from "@/lib/session";
+import { exigerAcces } from "@/lib/session";
 import { creerClientServeur } from "@/lib/supabase/server";
 import { Badge, Carte, EnTetePage, EtatVide, Tableau, Td, Th, Tuile } from "@/components/ui";
 import { MOYENS_PAIEMENT } from "@/lib/niger";
@@ -26,7 +26,7 @@ export default async function PagePaiements({
 }: {
   searchParams: Promise<{ du?: string; au?: string; moyen?: string }>;
 }) {
-  await exigerSession();
+  await exigerAcces("paiements");
   const params = await searchParams;
   const du = params.du || debutDeMois();
   const au = params.au || new Date().toISOString().slice(0, 10);

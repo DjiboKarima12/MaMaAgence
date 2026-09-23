@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
-import { exigerSession } from "@/lib/session";
+import { exigerAcces } from "@/lib/session";
 import { creerClientServeur } from "@/lib/supabase/server";
 import { EnTetePage } from "@/components/ui";
 import FormulairePelerin from "@/components/formulaire-pelerin";
@@ -13,7 +13,7 @@ export default async function PageModifierPelerin({
 }: {
   params: Promise<{ id: string }>;
 }) {
-  await exigerSession();
+  await exigerAcces("pelerins");
   const { id } = await params;
   const supabase = await creerClientServeur();
 

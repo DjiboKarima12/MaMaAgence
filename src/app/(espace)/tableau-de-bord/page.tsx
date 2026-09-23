@@ -12,7 +12,8 @@ import {
   UsersIcon,
   WalletIcon,
 } from "lucide-react";
-import { exigerSession } from "@/lib/session";
+import { exigerAcces } from "@/lib/session";
+import { peutVoir } from "@/lib/acces";
 import { creerClientServeur } from "@/lib/supabase/server";
 import { Badge, Carte, EtatVide, LienBouton, Tableau, Td, Th } from "@/components/ui";
 import { CarteKpi, LigneJauge } from "@/components/kpi";
@@ -40,7 +41,9 @@ export default async function PageTableauDeBord({
 }: {
   searchParams: Promise<{ saison?: string }>;
 }) {
-  const session = await exigerSession();
+  const session = await exigerAcces("tableau-de-bord");
+  const { droits } = session;
+  const voitPaiements = peutVoir(session.profil.role, "paiements");
   const { saison: saisonParam } = await searchParams;
   const supabase = await creerClientServeur();
 
@@ -523,6 +526,7 @@ export default async function PageTableauDeBord({
           </Carte>
         </div>
 
+        {voitPaiements && (
         <Carte
           titre="Derniers encaissements"
           action={
@@ -555,9 +559,11 @@ export default async function PageTableauDeBord({
             </ul>
           )}
         </Carte>
+        )}
       </div>
 
-      {/* Action principale, toujours accessible */}
+      {/* Action principale, pour qui a le droit de saisir */}
+      {droits.saisir && (
       <Link
         href="/pelerins/inscription"
         className="sans-impression fixed bottom-6 right-6 z-20 inline-flex items-center gap-2 rounded-full bg-marque-700 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-marque-900/20 transition-colors hover:bg-marque-800"
@@ -565,6 +571,7 @@ export default async function PageTableauDeBord({
         <UserPlusIcon className="h-4 w-4" aria-hidden />
         Enregistrer un pèlerin
       </Link>
+      )}
     </>
   );
 }

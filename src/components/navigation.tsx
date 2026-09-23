@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { Logo } from "@/components/logo";
 import { libelleRole } from "@/lib/roles";
+import { peutVoir, type Section } from "@/lib/acces";
 import type { UserRole } from "@/lib/database.types";
 import {
   BanknoteIcon,
@@ -20,15 +21,15 @@ import {
   XIcon,
 } from "lucide-react";
 
-const LIENS = [
-  { href: "/tableau-de-bord", label: "Tableau de bord", Icone: LayoutDashboardIcon },
-  { href: "/pelerins", label: "Pèlerins", Icone: UsersIcon },
-  { href: "/dossiers", label: "Dossiers", Icone: FolderOpenIcon },
-  { href: "/paiements", label: "Paiements", Icone: BanknoteIcon },
-  { href: "/groupes", label: "Groupes de départ", Icone: PlaneTakeoffIcon },
-  { href: "/logistique", label: "Hébergement", Icone: BedDoubleIcon },
-  { href: "/catalogue", label: "Saisons & forfaits", Icone: PackageIcon },
-  { href: "/parametres", label: "Paramètres", Icone: SettingsIcon },
+const LIENS: { section: Section; label: string; Icone: typeof UsersIcon }[] = [
+  { section: "tableau-de-bord", label: "Tableau de bord", Icone: LayoutDashboardIcon },
+  { section: "pelerins", label: "Pèlerins", Icone: UsersIcon },
+  { section: "dossiers", label: "Dossiers", Icone: FolderOpenIcon },
+  { section: "paiements", label: "Paiements", Icone: BanknoteIcon },
+  { section: "groupes", label: "Groupes de départ", Icone: PlaneTakeoffIcon },
+  { section: "logistique", label: "Hébergement", Icone: BedDoubleIcon },
+  { section: "catalogue", label: "Saisons & forfaits", Icone: PackageIcon },
+  { section: "parametres", label: "Paramètres", Icone: SettingsIcon },
 ];
 
 export function Navigation({
@@ -54,7 +55,8 @@ export function Navigation({
       </div>
 
       <nav className="flex-1 space-y-0.5 px-3 py-2">
-        {LIENS.map(({ href, label, Icone }) => {
+        {LIENS.filter((l) => peutVoir(role, l.section)).map(({ section, label, Icone }) => {
+          const href = `/${section}`;
           const actif = pathname === href || pathname.startsWith(`${href}/`);
           return (
             <Link

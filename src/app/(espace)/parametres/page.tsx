@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { exigerSession, peut } from "@/lib/session";
+import { exigerAcces, peut } from "@/lib/session";
 import { creerClientServeur } from "@/lib/supabase/server";
 import { Carte, EnTetePage } from "@/components/ui";
 import { dateCourte } from "@/lib/format";
@@ -13,7 +13,7 @@ import type { Invitation, Profil } from "@/lib/database.types";
 export const metadata: Metadata = { title: "Paramètres" };
 
 export default async function PageParametres() {
-  const session = await exigerSession();
+  const session = await exigerAcces("parametres");
   const supabase = await creerClientServeur();
 
   const proprietaire = peut(session, "proprietaire");

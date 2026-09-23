@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { exigerSession } from "@/lib/session";
+import { exigerAcces } from "@/lib/session";
 import { creerClientServeur } from "@/lib/supabase/server";
 import { EnTetePage } from "@/components/ui";
 import { InscriptionGuidee } from "@/components/inscription-guidee";
@@ -7,7 +7,7 @@ import { InscriptionGuidee } from "@/components/inscription-guidee";
 export const metadata: Metadata = { title: "Inscription d'un pèlerin" };
 
 export default async function PageInscriptionGuidee() {
-  const session = await exigerSession();
+  const session = await exigerAcces("pelerins");
   const supabase = await creerClientServeur();
 
   const [{ data: forfaits }, { data: groupes }, { data: mahrams }] = await Promise.all([

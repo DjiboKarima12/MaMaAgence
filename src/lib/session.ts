@@ -1,6 +1,7 @@
 import { cache } from "react";
 import { redirect } from "next/navigation";
 import { creerClientServeur } from "@/lib/supabase/server";
+import { droits, peutVoir, type Droits, type Section } from "@/lib/acces";
 import type { Agence, Profil } from "@/lib/database.types";
 
 export interface SessionAgence {
@@ -66,4 +67,20 @@ export function peut(
   minimum: keyof typeof RANG_ROLES,
 ): boolean {
   return RANG_ROLES[session.profil.role] >= RANG_ROLES[minimum];
+}
+
+/**
+ * Garde d'une section. À appeler en tête de chaque page de l'espace : sans
+ * elle, taper l'adresse suffirait à ouvrir un écran que le rôle n'autorise pas.
+ */
+export async function exigerAcces(
+  section: Section,
+): Promise<SessionAgence & { droits: Droits }> {
+  const session = await exigerSession();
+
+  if (!peutVoir(session.profil.role, section)) {
+    redirect(`/acces-refuse?section=${section}`);
+  }
+
+  return { ...session, droits: droits(session.profil.role) };
 }

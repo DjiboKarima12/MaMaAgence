@@ -303,10 +303,13 @@ export function PanneauPaiements({
   dossierId,
   paiements,
   solde,
+  peutEncaisser,
 }: {
   dossierId: string;
   paiements: Paiement[];
   solde: number;
+  /** Faux pour un agent de saisie : il consulte l'historique sans encaisser. */
+  peutEncaisser: boolean;
 }) {
   const router = useRouter();
   const [etat, envoyer, enCours] = useActionState(enregistrerPaiement, ETAT_INITIAL);
@@ -319,7 +322,7 @@ export function PanneauPaiements({
 
   return (
     <div>
-      {solde > 0 ? (
+      {solde > 0 && peutEncaisser ? (
         <form action={envoyer} className="grid gap-3 border-b border-ardoise-200 p-5 sm:grid-cols-2">
           <input type="hidden" name="dossier_id" value={dossierId} />
           {etat.statut === "erreur" && (
@@ -388,8 +391,16 @@ export function PanneauPaiements({
           </div>
         </form>
       ) : (
-        <p className="border-b border-ardoise-200 bg-marque-50 px-5 py-4 text-sm font-medium text-marque-800">
-          Ce dossier est intégralement réglé.
+        <p
+          className={`border-b border-ardoise-200 px-5 py-4 text-sm font-medium ${
+            solde > 0
+              ? "bg-ardoise-50 text-ardoise-600"
+              : "bg-marque-50 text-marque-800"
+          }`}
+        >
+          {solde > 0
+            ? "Solde en attente. Les encaissements sont enregistrés par le comptable."
+            : "Ce dossier est intégralement réglé."}
         </p>
       )}
 
@@ -431,7 +442,7 @@ export function PanneauPaiements({
                 >
                   Reçu
                 </a>
-                {p.statut === "confirme" && (
+                {p.statut === "confirme" && peutEncaisser && (
                   <button
                     type="button"
                     disabled={annulation}

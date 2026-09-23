@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { Metadata } from "next";
-import { exigerSession } from "@/lib/session";
+import { exigerAcces } from "@/lib/session";
 import { creerClientServeur } from "@/lib/supabase/server";
 import { Badge, Carte, EnTetePage, EtatVide, Jauge, Tableau, Td, Th } from "@/components/ui";
 import { alertePasseport, dateCourte, joursRestants, nombre, pourcentage, telephone, xof } from "@/lib/format";
@@ -10,7 +10,7 @@ import type { DossierFinance, Groupe, Saison } from "@/lib/database.types";
 export const metadata: Metadata = { title: "Groupes de départ" };
 
 export default async function PageGroupes() {
-  await exigerSession();
+  await exigerAcces("groupes");
   const supabase = await creerClientServeur();
 
   const [{ data: groupesBruts }, { data: saisonsBrutes }, { data: dossiersBruts }] =

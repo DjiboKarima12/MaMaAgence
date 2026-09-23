@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { exigerSession } from "@/lib/session";
+import { exigerAcces } from "@/lib/session";
 import { creerClientServeur } from "@/lib/supabase/server";
 import { Badge, Carte, EnTetePage, EtatVide, Tableau, Td, Th } from "@/components/ui";
 import { nombre, xof } from "@/lib/format";
@@ -14,7 +14,7 @@ import type { Forfait, Saison } from "@/lib/database.types";
 export const metadata: Metadata = { title: "Saisons & forfaits" };
 
 export default async function PageCatalogue() {
-  await exigerSession();
+  await exigerAcces("catalogue");
   const supabase = await creerClientServeur();
 
   const [{ data: saisonsBrutes }, { data: forfaitsBruts }, { data: dossiers }] = await Promise.all([

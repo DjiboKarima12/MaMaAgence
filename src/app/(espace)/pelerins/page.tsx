@@ -1,7 +1,7 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { creerClientServeur } from "@/lib/supabase/server";
-import { exigerSession } from "@/lib/session";
+import { exigerAcces } from "@/lib/session";
 import {
   Badge,
   Carte,
@@ -25,7 +25,7 @@ export default async function PagePelerins({
 }: {
   searchParams: Promise<{ q?: string; region?: string; page?: string }>;
 }) {
-  await exigerSession();
+  const { droits } = await exigerAcces("pelerins");
   const { q = "", region = "", page = "1" } = await searchParams;
   const numPage = Math.max(1, Number(page) || 1);
   const debut = (numPage - 1) * PAR_PAGE;
@@ -65,12 +65,14 @@ export default async function PagePelerins({
         titre="Pèlerins"
         description={`${total} fiche${total > 1 ? "s" : ""} enregistrée${total > 1 ? "s" : ""}`}
         action={
-          <div className="flex gap-2">
-            <LienBouton href="/pelerins/nouveau" variante="secondaire">
-              Fiche simple
-            </LienBouton>
-            <LienBouton href="/pelerins/inscription">Inscrire un pèlerin</LienBouton>
-          </div>
+          droits.saisir ? (
+            <div className="flex gap-2">
+              <LienBouton href="/pelerins/nouveau" variante="secondaire">
+                Fiche simple
+              </LienBouton>
+              <LienBouton href="/pelerins/inscription">Inscrire un pèlerin</LienBouton>
+            </div>
+          ) : undefined
         }
       />
 

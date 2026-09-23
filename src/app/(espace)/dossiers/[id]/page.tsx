@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
-import { exigerSession } from "@/lib/session";
+import { exigerAcces } from "@/lib/session";
 import { creerClientServeur } from "@/lib/supabase/server";
 import { Badge, Carte, EnTetePage, Jauge, Tuile } from "@/components/ui";
 import {
@@ -32,7 +32,7 @@ import type {
 export const metadata: Metadata = { title: "Dossier" };
 
 export default async function PageDossier({ params }: { params: Promise<{ id: string }> }) {
-  await exigerSession();
+  const { droits } = await exigerAcces("dossiers");
   const { id } = await params;
   const supabase = await creerClientServeur();
 
@@ -155,6 +155,7 @@ export default async function PageDossier({ params }: { params: Promise<{ id: st
               dossierId={id}
               paiements={(paiements ?? []) as Paiement[]}
               solde={finance.solde_xof}
+              peutEncaisser={droits.encaisser}
             />
           </Carte>
 

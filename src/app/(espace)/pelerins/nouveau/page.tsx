@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { exigerSession } from "@/lib/session";
+import { exigerAcces } from "@/lib/session";
 import { creerClientServeur } from "@/lib/supabase/server";
 import { EnTetePage } from "@/components/ui";
 import FormulairePelerin from "@/components/formulaire-pelerin";
@@ -8,7 +8,7 @@ import { creerPelerin } from "@/lib/actions/pelerins";
 export const metadata: Metadata = { title: "Nouveau pèlerin" };
 
 export default async function PageNouveauPelerin() {
-  await exigerSession();
+  await exigerAcces("pelerins");
   const supabase = await creerClientServeur();
 
   // Mahram possibles : les pèlerins masculins déjà enregistrés.

@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { exigerSession } from "@/lib/session";
+import { exigerAcces } from "@/lib/session";
 import { creerClientServeur } from "@/lib/supabase/server";
 import { EnTetePage } from "@/components/ui";
 import FormulaireDossier from "./formulaire";
@@ -11,7 +11,7 @@ export default async function PageNouveauDossier({
 }: {
   searchParams: Promise<{ pelerin?: string }>;
 }) {
-  await exigerSession();
+  await exigerAcces("dossiers");
   const { pelerin } = await searchParams;
   const supabase = await creerClientServeur();
 
