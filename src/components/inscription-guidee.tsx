@@ -232,15 +232,26 @@ export function InscriptionGuidee({
           </p>
           <p className="mx-auto mt-1 max-w-md text-sm text-ardoise-500">
             {peutGererCatalogue
-              ? "Créez une saison et au moins un forfait avant d'inscrire un pèlerin."
-              : "Les forfaits sont préparés par le gestionnaire ou le propriétaire de l'agence. Signalez-leur que vous avez un pèlerin à inscrire : dès qu'une campagne est ouverte, cet écran fonctionnera."}
+              ? "Le parcours complet a besoin d'un forfait pour ouvrir le dossier. Créez une saison et au moins un forfait."
+              : "Le parcours complet a besoin d'un forfait, préparé par le gestionnaire ou le propriétaire. Signalez-leur qu'une campagne doit être ouverte."}
           </p>
-          <div className="mt-5">
+
+          <p className="mx-auto mt-4 max-w-md rounded-lg bg-ardoise-50 px-4 py-3 text-sm text-ardoise-700">
+            Vous pouvez tout de même <strong>enregistrer la fiche du pèlerin</strong> dès
+            maintenant : état civil, passeport et contacts ne dépendent d&apos;aucune campagne.
+            Son dossier d&apos;inscription sera ouvert ensuite, quand les forfaits existeront.
+          </p>
+
+          <div className="mt-5 flex flex-wrap justify-center gap-3">
+            <Bouton type="button" onClick={() => router.push("/pelerins/nouveau")}>
+              Enregistrer la fiche du pèlerin
+            </Bouton>
             <Bouton
               type="button"
+              variante="secondaire"
               onClick={() => router.push(peutGererCatalogue ? "/catalogue" : "/pelerins")}
             >
-              {peutGererCatalogue ? "Ouvrir le catalogue" : "Revenir aux pèlerins"}
+              {peutGererCatalogue ? "Ouvrir le catalogue" : "Voir les pèlerins"}
             </Bouton>
           </div>
         </div>
