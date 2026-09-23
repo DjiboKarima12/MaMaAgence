@@ -113,11 +113,17 @@ export function InscriptionGuidee({
   forfaits,
   groupes,
   mahrams,
+  peutGererCatalogue,
+  peutEncaisser,
 }: {
   agenceId: string;
   forfaits: OptionForfait[];
   groupes: OptionGroupe[];
   mahrams: OptionMahram[];
+  /** Faux pour un agent : le catalogue ne lui est pas ouvert. */
+  peutGererCatalogue: boolean;
+  /** Faux pour un agent : le versement sera saisi par le comptable. */
+  peutEncaisser: boolean;
 }) {
   const router = useRouter();
   const [etape, setEtape] = useState(1);
@@ -215,17 +221,26 @@ export function InscriptionGuidee({
   const err = (source: Record<string, string>, nom: string) =>
     source[nom] ? <span className="mt-1 block text-xs text-rose-600">{source[nom]}</span> : null;
 
+  // Sans forfait ouvert, il n'y a rien a quoi inscrire. Le remede depend du
+  // role : le gestionnaire ouvre le catalogue, l'agent n'a qu'a le signaler.
   if (forfaits.length === 0) {
     return (
       <Carte>
         <div className="px-6 py-12 text-center">
-          <p className="text-sm font-medium text-ardoise-800">Aucun forfait actif</p>
+          <p className="text-sm font-medium text-ardoise-800">
+            Aucune campagne n&apos;est ouverte aux inscriptions
+          </p>
           <p className="mx-auto mt-1 max-w-md text-sm text-ardoise-500">
-            Créez une saison et au moins un forfait avant d&apos;inscrire un pèlerin.
+            {peutGererCatalogue
+              ? "Créez une saison et au moins un forfait avant d'inscrire un pèlerin."
+              : "Les forfaits sont préparés par le gestionnaire ou le propriétaire de l'agence. Signalez-leur que vous avez un pèlerin à inscrire : dès qu'une campagne est ouverte, cet écran fonctionnera."}
           </p>
           <div className="mt-5">
-            <Bouton type="button" onClick={() => router.push("/catalogue")}>
-              Ouvrir le catalogue
+            <Bouton
+              type="button"
+              onClick={() => router.push(peutGererCatalogue ? "/catalogue" : "/pelerins")}
+            >
+              {peutGererCatalogue ? "Ouvrir le catalogue" : "Revenir aux pèlerins"}
             </Bouton>
           </div>
         </div>
@@ -633,7 +648,7 @@ export function InscriptionGuidee({
                 </div>
                 <div className="flex justify-end border-t border-ardoise-200 px-5 py-3">
                   <Bouton type="button" onClick={() => setEtape(3)}>
-                    Continuer vers le paiement
+                    {peutEncaisser ? "Continuer vers le paiement" : "Terminer l'inscription"}
                   </Bouton>
                 </div>
               </>
@@ -643,7 +658,34 @@ export function InscriptionGuidee({
       )}
 
       {/* ================= Étape 3 : paiement ================= */}
-      {etape === 3 && dossierId && (
+      {etape === 3 && dossierId && !peutEncaisser && (
+        <Carte>
+          <div className="px-6 py-12 text-center">
+            <span className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-marque-50">
+              <CheckIcon className="h-6 w-6 text-marque-700" aria-hidden />
+            </span>
+            <p className="mt-4 text-lg font-semibold text-ardoise-950">Dossier créé</p>
+            <p className="mx-auto mt-1 max-w-md text-sm text-ardoise-500">
+              Le pèlerin est inscrit et ses pièces sont rattachées. Le premier versement sera
+              enregistré par le comptable : dirigez le pèlerin vers la caisse.
+            </p>
+            <div className="mt-6 flex flex-wrap justify-center gap-3">
+              <Bouton type="button" onClick={() => router.push(`/dossiers/${dossierId}`)}>
+                Ouvrir le dossier
+              </Bouton>
+              <Bouton
+                type="button"
+                variante="secondaire"
+                onClick={() => router.push("/pelerins/inscription")}
+              >
+                Inscrire un autre pèlerin
+              </Bouton>
+            </div>
+          </div>
+        </Carte>
+      )}
+
+      {etape === 3 && dossierId && peutEncaisser && (
         <div className="space-y-4">
           {etatPaiement.statut === "ok" ? (
             <Carte>

@@ -11,7 +11,7 @@ export default async function PageNouveauDossier({
 }: {
   searchParams: Promise<{ pelerin?: string }>;
 }) {
-  await exigerAcces("dossiers");
+  const { droits } = await exigerAcces("dossiers");
   const { pelerin } = await searchParams;
   const supabase = await creerClientServeur();
 
@@ -58,6 +58,7 @@ export default async function PageNouveauDossier({
         forfaits={forfaitsOuverts}
         groupes={groupes ?? []}
         pelerinInitial={pelerin}
+        peutGererCatalogue={droits.gererCatalogue}
       />
     </>
   );

@@ -44,6 +44,8 @@ export default async function PageTableauDeBord({
   const session = await exigerAcces("tableau-de-bord");
   const { droits } = session;
   const voitPaiements = peutVoir(session.profil.role, "paiements");
+  const voitGroupes = peutVoir(session.profil.role, "groupes");
+  const voitCatalogue = peutVoir(session.profil.role, "catalogue");
   const { saison: saisonParam } = await searchParams;
   const supabase = await creerClientServeur();
 
@@ -198,10 +200,12 @@ export default async function PageTableauDeBord({
           </p>
           <ol className="mt-3 grid gap-2 sm:grid-cols-3">
             {[
-              { n: 1, titre: "Saison et forfaits", href: "/catalogue" },
-              { n: 2, titre: "Pèlerins", href: "/pelerins/inscription" },
-              { n: 3, titre: "Dossiers d'inscription", href: "/dossiers/nouveau" },
-            ].map((e) => (
+              { n: 1, titre: "Saison et forfaits", href: "/catalogue", ouvert: voitCatalogue },
+              { n: 2, titre: "Pèlerins", href: "/pelerins/inscription", ouvert: droits.saisir },
+              { n: 3, titre: "Dossiers d'inscription", href: "/dossiers/nouveau", ouvert: droits.saisir },
+            ]
+              .filter((e) => e.ouvert)
+              .map((e) => (
               <li key={e.n}>
                 <Link
                   href={e.href}
@@ -369,9 +373,11 @@ export default async function PageTableauDeBord({
               titre="Aucun groupe de départ"
               description="Créez un groupe pour planifier le vol et l'encadrement."
               action={
-                <LienBouton href="/groupes" variante="secondaire">
-                  Créer un groupe
-                </LienBouton>
+                voitGroupes ? (
+                  <LienBouton href="/groupes" variante="secondaire">
+                    Créer un groupe
+                  </LienBouton>
+                ) : undefined
               }
             />
           ) : (
@@ -437,13 +443,15 @@ export default async function PageTableauDeBord({
               )}
 
               <div className="border-t border-ardoise-200 px-5 py-3">
-                <Link
-                  href="/groupes"
-                  className="inline-flex items-center gap-1.5 text-sm font-medium text-marque-700 hover:underline"
-                >
-                  <BedDoubleIcon className="h-4 w-4" aria-hidden />
-                  Manifeste du groupe
-                </Link>
+                {voitGroupes && (
+                  <Link
+                    href="/groupes"
+                    className="inline-flex items-center gap-1.5 text-sm font-medium text-marque-700 hover:underline"
+                  >
+                    <BedDoubleIcon className="h-4 w-4" aria-hidden />
+                    Manifeste du groupe
+                  </Link>
+                )}
               </div>
             </>
           )}

@@ -36,11 +36,14 @@ export default function FormulaireDossier({
   forfaits,
   groupes,
   pelerinInitial,
+  peutGererCatalogue,
 }: {
   pelerins: OptionPelerin[];
   forfaits: OptionForfait[];
   groupes: OptionGroupe[];
   pelerinInitial?: string;
+  /** Faux pour un agent : le catalogue ne lui est pas ouvert. */
+  peutGererCatalogue: boolean;
 }) {
   const router = useRouter();
   const [etat, envoyer, enCours] = useActionState(creerDossier, ETAT_INITIAL);
@@ -79,17 +82,29 @@ export default function FormulaireDossier({
           </p>
           <p className="mx-auto mt-1 max-w-md text-sm text-ardoise-500">
             {forfaits.length === 0
-              ? "Créez d'abord une saison et au moins un forfait dans le catalogue."
+              ? peutGererCatalogue
+                ? "Créez d'abord une saison et au moins un forfait dans le catalogue."
+                : "Les forfaits sont préparés par le gestionnaire ou le propriétaire. Signalez-leur qu'une campagne doit être ouverte."
               : "Enregistrez la fiche d'un pèlerin avant d'ouvrir un dossier."}
           </p>
           <div className="mt-5">
             <Bouton
               type="button"
               onClick={() =>
-                router.push(forfaits.length === 0 ? "/catalogue" : "/pelerins/nouveau")
+                router.push(
+                  forfaits.length > 0
+                    ? "/pelerins/nouveau"
+                    : peutGererCatalogue
+                      ? "/catalogue"
+                      : "/dossiers",
+                )
               }
             >
-              {forfaits.length === 0 ? "Ouvrir le catalogue" : "Ajouter un pèlerin"}
+              {forfaits.length > 0
+                ? "Ajouter un pèlerin"
+                : peutGererCatalogue
+                  ? "Ouvrir le catalogue"
+                  : "Revenir aux dossiers"}
             </Bouton>
           </div>
         </div>

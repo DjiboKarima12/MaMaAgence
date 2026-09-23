@@ -49,6 +49,8 @@ export default async function PageInscriptionGuidee() {
       />
       <InscriptionGuidee
         agenceId={session.agence.id}
+        peutGererCatalogue={session.droits.gererCatalogue}
+        peutEncaisser={session.droits.encaisser}
         forfaits={forfaitsOuverts}
         groupes={groupes ?? []}
         mahrams={mahrams ?? []}
